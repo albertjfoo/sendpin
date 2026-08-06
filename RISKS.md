@@ -1,7 +1,18 @@
 # karoo2-send — risk register
 
-Last updated 2026-08-05, after the NUC de-risk session and a review of the
+Last updated 2026-08-06. Built on the NUC de-risk session and a review of the
 karoo-ext source. Supersedes all earlier risk notes.
+
+**2026-08-06 — the iOS-side mitigations are now implemented** (see
+[PROTOCOL.md](PROTOCOL.md)). None of them are *verified*: the app has not run on
+hardware yet, and R1/R2 are untouched.
+
+| Risk | iOS-side mitigation, as built |
+|---|---|
+| R3 foreground-only | screen kept awake while the app is open; status and log rendered on screen |
+| R4 payload can't ride in the advertisement | payload served over GATT; blob reads honour `request.offset` |
+| R5 31-byte advertisement | waypoint mode advertises the service UUID alone, no local name |
+| R6 address rotation | nothing to do on iOS — the *extension* must scan by service UUID and never cache a MAC |
 
 ---
 

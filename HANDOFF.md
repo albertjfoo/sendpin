@@ -1,7 +1,12 @@
 # karoo2-send — handoff to the MacBook
 
 Self-contained context for continuing on the Mac. Written 2026-08-05 after the
-NUC de-risk session.
+NUC de-risk session; updated 2026-08-06 on the Mac.
+
+> **Current state (2026-08-06):** the iOS app now exists and builds clean — see
+> [Where the code is](#where-the-code-is) and [Status](#status). It has **never
+> been run on a device**, because Xcode has to be updated first. Milestone 1 is
+> written but unproven.
 
 ## The project
 
@@ -105,45 +110,134 @@ rotates its address ~every 15 min) → connects, reads `{lat, lng, name}` over G
 (iOS cannot put payload in the advertisement) → builds `Symbol.POI` → dispatches
 `LaunchPinDrop` → `ReleaseBluetooth`.
 
-## Milestone 1 on the Mac — no Kotlin required
+The UUIDs, payload format and URL scheme are now pinned in **[PROTOCOL.md](PROTOCOL.md)**
+and implemented on the iOS side. Write the Kotlin against that document.
+
+## Where the code is
+
+The working copy moved off the USB stick on 2026-08-06:
+
+```
+~/Developer/karoo2-send        ← build here (APFS, git repo)
+/Volumes/USB Drive/karoo2-send ← archive + vendor-apks/ only
+```
+
+**Do not build on the USB drive.** It is exFAT: no POSIX permissions, no extended
+attributes. Code signing and DerivedData both misbehave there. `vendor-apks/` stays
+on the stick; it is Karoo-only.
+
+```
+ios/KarooSend.xcodeproj        hand-written, file-system-synchronized groups
+ios/KarooSend-Info.plist       outside the sync group on purpose — inside, it would
+                               be swept into Copy Bundle Resources and collide
+ios/KarooSend/
+  KarooSendApp.swift           @main, karoosend:// intake, keeps the screen awake
+  ContentView.swift            status, mode picker, manual entry, on-screen log
+  KarooSendPeripheral.swift    the BLE peripheral
+  Waypoint.swift               the payload + URL parsing
+PROTOCOL.md                    the iPhone ↔ Karoo wire contract
+```
+
+Build from the command line without touching `xcode-select`:
+
+```
+cd ~/Developer/karoo2-send/ios
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build \
+  -scheme KarooSend -sdk iphonesimulator \
+  -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
+```
+
+That only proves it compiles. The Simulator cannot advertise, so it can never prove
+anything about BLE.
+
+## Status
+
+| | |
+|---|---|
+| Builds clean, no warnings | ✅ 2026-08-06 |
+| Payload + URL parsing verified (19 checks) | ✅ 2026-08-06 |
+| Run on a physical iPhone | ❌ blocked, see below |
+| Milestone 1 — iPhone in Karoo's Add Sensor list | ❌ not attempted |
+
+## ⛔ Blocker: Xcode is too old for the phone
+
+`/Applications/Xcode.app` is **16.4**, which ships the **iOS 18.5** SDK. The iPhone
+(`iPhone18,1`) runs **iOS 26.4.2**. Xcode 16.4 cannot install or debug on an iOS 26
+device — nothing can be tested on hardware until Xcode 26.x is installed from the
+Mac App Store (~10GB+, slow).
+
+Everything else is ready and waiting for that.
+
+Also note: `xcode-select` still points at `/Library/Developer/CommandLineTools`, so
+`xcodebuild` and `devicectl` are not on `PATH`. Either use the explicit paths above,
+or fix it once with:
+
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
+
+## Milestone 1 — no Kotlin required
 
 Get the iPhone to appear in the Karoo's **native Add Sensor list** as a heart rate
 sensor. That single observable proves BLE discovery end-to-end using Hammerhead's own
 UI as the test harness — no extension, no coordinator fight, no sideloading.
 
-`ios/KarooSendPeripheral.swift` in this folder is a complete, commented starter that
-does exactly this. Drop it into a new Xcode iOS App project and call `start()`.
+The app ships this as the **HR test harness** mode (the default). Run it, tap Start,
+then on the Karoo: Settings → Sensors → Add Sensor → Heart Rate. Look for `KarooSend`.
 
-⚠️ **The heart-rate service in that file is a test harness, not the product.** It
-exists so you can use Karoo's own sensor UI as a detector. Once `RequestBluetooth` is
-verified, the shipping app advertises only the custom waypoint service.
+Watch the **on-screen log**, not the Xcode console — you will be standing over the
+bike with the phone in your hand. `SUBSCRIBED to 2A37` is the win condition.
 
-## Mac setup gotchas
+⚠️ **The heart-rate service is a test harness, not the product.** It exists so Karoo's
+own sensor UI can act as a detector, and it is only added to the GATT database in that
+mode. The shipping app advertises the custom waypoint service alone.
+
+## Other Mac setup notes
 
 1. **CoreBluetooth does not work in the iOS Simulator.** You must run on a physical
    iPhone. The Simulator reports `.unsupported` and nothing else happens.
-2. **`Info.plist` needs `NSBluetoothAlwaysUsageDescription`** (any string). Without it
+2. **`Info.plist` needs `NSBluetoothAlwaysUsageDescription`** — already set. Without it
    iOS 13+ refuses Bluetooth and the peripheral silently fails as `.unauthorized`.
 3. **A free Apple ID is enough** to run on your own device — but the build expires
    after **7 days** and must be re-signed. The paid Developer Program ($99/yr) gives
    a year. Free is fine to start; the expiry gets annoying during iteration.
-4. **Xcode** from the Mac App Store, ~10GB+. Sign in under Settings → Accounts, then
-   set the project's Signing team to your personal team.
-5. **adb on the Mac** (optional): `brew install android-platform-tools`, if you want
+   Set the Signing team in Xcode: sign in under Settings → Accounts, then pick your
+   personal team on the KarooSend target. `PRODUCT_BUNDLE_IDENTIFIER` is
+   `com.albert.karoosend` — change it if it collides.
+4. **adb on the Mac** (optional): `brew install android-platform-tools`, if you want
    Karoo logs from the same machine instead of hopping back to the NUC. Milestone 1
    doesn't need it — you just look at the Karoo's screen.
 
-## Continuing with Claude Code on the Mac
+## Next actions, in order
 
-Claude Code runs on macOS (CLI, desktop app, and IDE extensions). This conversation
-and the agent's memory files **do not transfer** — memory is machine-local and keyed
-to a directory path. This file is the replacement: point the new session at it.
+1. **Install Xcode 26** from the Mac App Store. Nothing on hardware can happen first.
+2. Open `ios/KarooSend.xcodeproj`, set the Signing team, run on the iPhone.
+3. **Milestone 1**: HR test harness mode → Karoo's Add Sensor list. Watch for
+   `SUBSCRIBED to 2A37` in the on-screen log.
+4. Then **R1** — check the Karoo's system version against the karoo-ext 1.1.3 floor.
+   Cheap, and it decides whether `LaunchPinDrop` is available at all. Do this before
+   writing significant Kotlin.
+5. Then **R2** — a Kotlin extension that dispatches `RequestBluetooth("karoo2send")`,
+   confirmed against `adb logcat | grep -i BluetoothCoordinator`.
 
-The two memory files it was built from live on the NUC at:
+## Continuing with Claude Code
+
+This conversation and the agent's memory files **do not transfer between machines** —
+memory is machine-local and keyed to a directory path. These documents are the
+replacement: point a new session at `~/Developer/karoo2-send`.
+
+The two memory files this was originally built from live on the NUC at:
 `~/.claude/projects/-home-albert-foo-iphone-photos/memory/`
 
-## Moving this folder to the Mac
+## Keeping the USB copy in sync
 
-Only `HANDOFF.md` and `ios/` matter — `vendor-apks/` is Karoo-only and can stay.
-Any of: AirDrop, a USB stick, a cloud folder, or `git init` here plus a private
-GitHub repo (note: `gh` was not installed on the NUC as of this session).
+The stick is now an archive, not the working copy. To refresh the docs on it:
+
+```
+rsync -a --delete --exclude vendor-apks --exclude .git \
+  ~/Developer/karoo2-send/ "/Volumes/USB Drive/karoo2-send/"
+```
+
+For a real backup, prefer `git init` plus a private GitHub repo over the stick
+(note: `gh` was not installed on the NUC as of the 2026-08-05 session).
