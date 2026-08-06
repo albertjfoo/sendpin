@@ -37,6 +37,10 @@ enum KarooSendBLE {
     /// by the milestone-1 test harness, never by the shipping product.
     static let heartRateService = CBUUID(string: "180D")
     static let heartRateMeasurement = CBUUID(string: "2A37")
+    /// Where on the body the sensor sits. 0x01 = Chest. Some head units read
+    /// this before they will accept an HR sensor as genuine.
+    static let bodySensorLocation = CBUUID(string: "2A38")
+
 }
 
 // MARK: - Advertising mode
@@ -255,10 +259,24 @@ final class KarooSendPeripheral: NSObject {
                 permissions: [.readable])
             hrCharacteristic = hrChar
 
+            // Body Sensor Location, 0x01 = Chest. Static, so it can carry a
+            // cached value and needs no read handler.
+            let locationChar = CBMutableCharacteristic(
+                type: KarooSendBLE.bodySensorLocation,
+                properties: [.read],
+                value: Data([0x01]),
+                permissions: [.readable])
+
             let hrService = CBMutableService(type: KarooSendBLE.heartRateService, primary: true)
-            hrService.characteristics = [hrChar]
+            hrService.characteristics = [hrChar, locationChar]
             pendingServiceAdds += 1
             manager.add(hrService)
+
+            // NOTE: do not try to publish Device Information (180A) or Battery
+            // (180F) here. iOS reserves both for the system and CBPeripheralManager
+            // rejects them with "The specified UUID is not allowed for this
+            // operation." Tried 2026-08-06; it is not a permissions problem or a
+            // fixable mistake, the platform simply forbids it.
         } else {
             hrCharacteristic = nil
         }
@@ -369,12 +387,16 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
         pendingServiceAdds = max(0, pendingServiceAdds - 1)
 
         if let error {
+            // Deliberately no early return. A failed add still has to fall
+            // through to the readiness check below, or the last add failing
+            // leaves servicesReady false forever and Start silently does
+            // nothing — which is exactly what happened on 2026-08-06.
             append(.failure, "failed to add \(service.uuid): \(error.localizedDescription)")
-            return
+        } else {
+            append(.info, "added service \(service.uuid)")
         }
-        append(.info, "added service \(service.uuid)")
 
-        // Only advertise once every service is in place.
+        // Advertise once every add has resolved, successfully or not.
         if pendingServiceAdds == 0 {
             servicesReady = true
             if wantsToAdvertise { beginAdvertising() }
@@ -405,10 +427,21 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
                            didSubscribeTo characteristic: CBCharacteristic) {
         subscriberCount += 1
         append(.success, "SUBSCRIBED to \(characteristic.uuid) — something connected")
+        // maximumUpdateValueLength is the negotiated ATT MTU minus overhead.
+        // ~20 means the default MTU, which is what forces blob reads for the
+        // waypoint payload; anything larger means the central negotiated up.
+        append(.info, "central max write \(central.maximumUpdateValueLength) bytes")
 
         if characteristic.uuid == KarooSendBLE.heartRateMeasurement {
             startHeartRateNotifications()
         }
+    }
+
+    /// Fires when the transmit queue drains after updateValue returned false.
+    /// Without this a dropped heart rate notification would stall the stream
+    /// permanently, which looks identical to "never subscribed".
+    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
+        append(.info, "transmit queue ready")
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager,
@@ -425,7 +458,14 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
 
     func peripheralManager(_ peripheral: CBPeripheralManager,
                            didReceiveRead request: CBATTRequest) {
+        // Every read is evidence that a central is connected and walking the
+        // GATT database — the only such evidence CoreBluetooth gives us in the
+        // peripheral role, since there is no didConnect callback.
         guard request.characteristic.uuid == KarooSendBLE.waypointCharacteristic else {
+            // Characteristics built with a cached `value` are answered by
+            // CoreBluetooth itself and never reach here, so anything landing
+            // in this branch is genuinely unexpected and worth seeing.
+            append(.warning, "read of unhandled \(request.characteristic.uuid)")
             peripheral.respond(to: request, withResult: .attributeNotFound)
             return
         }
