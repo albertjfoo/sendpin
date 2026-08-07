@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Hammerhead yellow. Their own #FFE900, seen in io.hammerhead.rideapp resources.
+    <!-- Hammerhead yellow. Their own #FFE800, seen in io.hammerhead.rideapp resources.
          Near-black strokes on it read clearly at 48px on the Karoo launcher. -->
-    <color name="ic_launcher_background">#FFE900</color>
+    <color name="ic_launcher_background">#FFE800</color>
 </resources>
