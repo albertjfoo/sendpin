@@ -33,45 +33,7 @@ enum KarooSendBLE {
     /// Readable characteristic holding the UTF-8 JSON waypoint.
     static let waypointCharacteristic = CBUUID(string: "4B027EEA-0002-45A6-AB37-310A7471C7DC")
 
-    /// Bluetooth SIG Heart Rate service + Measurement characteristic. Used only
-    /// by the milestone-1 test harness, never by the shipping product.
-    static let heartRateService = CBUUID(string: "180D")
-    static let heartRateMeasurement = CBUUID(string: "2A37")
-    /// Where on the body the sensor sits. 0x01 = Chest. Some head units read
-    /// this before they will accept an HR sensor as genuine.
-    static let bodySensorLocation = CBUUID(string: "2A38")
 
-}
-
-// MARK: - Advertising mode
-
-enum AdvertisingMode: String, CaseIterable, Identifiable {
-    /// Milestone 1. Masquerade as a heart rate monitor so the Karoo's own
-    /// Settings → Sensors → Add Sensor screen becomes the test harness. Proves
-    /// BLE discovery end-to-end with zero Kotlin written.
-    case heartRateTestHarness
-
-    /// The product. Advertise only the custom waypoint service; the Karoo
-    /// extension scans for that UUID, connects, and reads the payload.
-    case waypoint
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .heartRateTestHarness: "HR test harness"
-        case .waypoint: "Waypoint"
-        }
-    }
-
-    var explanation: String {
-        switch self {
-        case .heartRateTestHarness:
-            "Advertises service 180D as \"KarooSend\". Look for it in Karoo → Settings → Sensors → Add Sensor → Heart Rate."
-        case .waypoint:
-            "Advertises \"KSend\" plus the custom waypoint service. Read it with nRF Connect on the Karoo, or with the extension once it exists."
-        }
-    }
 }
 
 // MARK: - Log
@@ -102,17 +64,6 @@ final class KarooSendPeripheral: NSObject {
     /// start advertising.
     var waypoint: Waypoint = .none
 
-    var mode: AdvertisingMode = .heartRateTestHarness {
-        didSet {
-            guard oldValue != mode else { return }
-            append(.info, "mode → \(mode.label)")
-            // The GATT database differs per mode, so a live session has to be
-            // torn down and rebuilt rather than just re-advertised.
-            if isAdvertising || servicesReady {
-                restart()
-            }
-        }
-    }
 
     var statusText: String {
         switch managerState {
@@ -130,11 +81,8 @@ final class KarooSendPeripheral: NSObject {
     // MARK: Private state
 
     private var manager: CBPeripheralManager?
-    private var hrCharacteristic: CBMutableCharacteristic?
     private var waypointCharacteristic: CBMutableCharacteristic?
-    private var notifyTimer: Timer?
     private var deliveryTimer: Timer?
-    private var bpm: UInt8 = 72
 
     /// Services are added asynchronously; we must not advertise until every
     /// add has come back through didAdd, or the GATT database a central sees
@@ -178,8 +126,6 @@ final class KarooSendPeripheral: NSObject {
     /// holding this open — and it costs battery on both ends.
     func stop() {
         wantsToAdvertise = false
-        notifyTimer?.invalidate()
-        notifyTimer = nil
         deliveryTimer?.invalidate()
         deliveryTimer = nil
         subscriberCount = 0
@@ -193,7 +139,6 @@ final class KarooSendPeripheral: NSObject {
         manager.removeAllServices()
         servicesReady = false
         pendingServiceAdds = 0
-        hrCharacteristic = nil
         waypointCharacteristic = nil
     }
 
@@ -249,102 +194,38 @@ final class KarooSendPeripheral: NSObject {
         waypointService.characteristics = [waypointChar]
         pendingServiceAdds += 1
         manager.add(waypointService)
-
-        // --- Heart rate service: milestone-1 discovery decoy only ---
-        if mode == .heartRateTestHarness {
-            // A .notify characteristic MUST be created with value: nil.
-            // CoreBluetooth throws if you cache a value on one, because a
-            // cached value implies read-only.
-            let hrChar = CBMutableCharacteristic(
-                type: KarooSendBLE.heartRateMeasurement,
-                properties: [.notify],
-                value: nil,
-                permissions: [.readable])
-            hrCharacteristic = hrChar
-
-            // Body Sensor Location, 0x01 = Chest. Static, so it can carry a
-            // cached value and needs no read handler.
-            let locationChar = CBMutableCharacteristic(
-                type: KarooSendBLE.bodySensorLocation,
-                properties: [.read],
-                value: Data([0x01]),
-                permissions: [.readable])
-
-            let hrService = CBMutableService(type: KarooSendBLE.heartRateService, primary: true)
-            hrService.characteristics = [hrChar, locationChar]
-            pendingServiceAdds += 1
-            manager.add(hrService)
-
-            // NOTE: do not try to publish Device Information (180A) or Battery
-            // (180F) here. iOS reserves both for the system and CBPeripheralManager
-            // rejects them with "The specified UUID is not allowed for this
-            // operation." Tried 2026-08-06; it is not a permissions problem or a
-            // fixable mistake, the platform simply forbids it.
-        } else {
-            hrCharacteristic = nil
-        }
     }
 
     private func beginAdvertising() {
         guard let manager, !isAdvertising else { return }
 
-        // Pin the bytes for the whole advertising session.
+        // Pin the bytes for the whole advertising session, so a long (blob)
+        // read served across several ATT round trips cannot see the payload
+        // change underneath it halfway through.
         servedPayload = waypoint.encoded
 
-        // THE critical line — the thing LightBlue never did, and the reason the
-        // Karoo never saw the phone during the NUC session. Adding a service
-        // via manager.add() does NOT put its UUID in the advertisement; it has
-        // to be listed here explicitly, and Karoo filters scans by service UUID.
+        // R5: the advertisement is 31 bytes and a 128-bit UUID eats most of it.
+        // Overflow gets pushed to the Apple-only overflow area, where an Android
+        // central like the Karoo cannot see it — so the budget is real and worth
+        // counting rather than guessing at:
         //
-        // iOS supports only these two advertisement keys. No manufacturer data,
-        // no service data — which is why the waypoint payload can never ride in
-        // the advertisement and must travel over GATT after connecting (R4).
-        var data: [String: Any] = [:]
-
-        switch mode {
-        case .heartRateTestHarness:
-            // 180D is 16-bit, so there is plenty of room left for a name.
-            data[CBAdvertisementDataServiceUUIDsKey] = [KarooSendBLE.heartRateService]
-            data[CBAdvertisementDataLocalNameKey] = "KarooSend"
-
-        case .waypoint:
-            // R5: the advertisement is 31 bytes and a 128-bit UUID eats most of
-            // it. Overflow gets pushed to the Apple-only overflow area, where an
-            // Android central like the Karoo cannot see it — so the budget is
-            // real and worth counting rather than guessing at:
-            //
-            //   flags                    3
-            //   128-bit service UUID  2 + 16
-            //   local name "KSend"    2 +  5
-            //                         --------
-            //                              28  of 31
-            //
-            // Three bytes spare, so a name this short is safe and makes the
-            // device findable in a scanner instead of an anonymous row. Do not
-            // lengthen it without redoing this arithmetic.
-            data[CBAdvertisementDataServiceUUIDsKey] = [KarooSendBLE.waypointService]
-            data[CBAdvertisementDataLocalNameKey] = "KSend"
-        }
-
-        manager.startAdvertising(data)
+        //   flags                    3
+        //   128-bit service UUID  2 + 16
+        //   local name "KSend"    2 +  5
+        //                         --------
+        //                              28  of 31
+        //
+        // Three bytes spare. Do not lengthen the name without redoing this.
+        //
+        // iOS supports only these two keys — no manufacturer data, no service
+        // data — which is why the waypoint travels over GATT rather than riding
+        // in the advertisement itself.
+        manager.startAdvertising([
+            CBAdvertisementDataServiceUUIDsKey: [KarooSendBLE.waypointService],
+            CBAdvertisementDataLocalNameKey: "KSend",
+        ])
     }
 
-    // MARK: - Heart rate simulation
-
-    /// Karoo drops a "sensor" that connects and then says nothing, so emit
-    /// plausible readings to hold the connection open long enough to confirm
-    /// the pairing worked.
-    private func startHeartRateNotifications() {
-        notifyTimer?.invalidate()
-        notifyTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self, let characteristic = self.hrCharacteristic else { return }
-            self.bpm = 60 + ((self.bpm - 60 + 1) % 40)
-            // HR Measurement format: flags byte (0x00 = uint8 BPM) + value.
-            self.manager?.updateValue(Data([0x00, self.bpm]),
-                                      for: characteristic,
-                                      onSubscribedCentrals: nil)
-        }
-    }
 
     // MARK: - Logging
 
@@ -425,15 +306,8 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
             return
         }
         isAdvertising = true
-
-        switch mode {
-        case .heartRateTestHarness:
-            append(.success, "advertising as \"KarooSend\" with 180D in the packet")
-            append(.info, "now open Karoo → Settings → Sensors → Add Sensor → Heart Rate")
-        case .waypoint:
-            append(.success, "advertising \"KSend\" + waypoint service UUID")
-            append(.info, "serving \(waypoint.summary) — \(servedPayload.count) bytes")
-        }
+        append(.success, "advertising \"KSend\" + waypoint service UUID")
+        append(.info, "serving \(waypoint.summary) — \(servedPayload.count) bytes")
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager,
@@ -446,9 +320,6 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
         // waypoint payload; anything larger means the central negotiated up.
         append(.info, "central max write \(central.maximumUpdateValueLength) bytes")
 
-        if characteristic.uuid == KarooSendBLE.heartRateMeasurement {
-            startHeartRateNotifications()
-        }
     }
 
     /// Fires when the transmit queue drains after updateValue returned false.
@@ -463,11 +334,6 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
                            didUnsubscribeFrom characteristic: CBCharacteristic) {
         subscriberCount = max(0, subscriberCount - 1)
         append(.info, "unsubscribed from \(characteristic.uuid)")
-
-        if characteristic.uuid == KarooSendBLE.heartRateMeasurement, subscriberCount == 0 {
-            notifyTimer?.invalidate()
-            notifyTimer = nil
-        }
     }
 
     func peripheralManager(_ peripheral: CBPeripheralManager,
@@ -516,7 +382,6 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
     /// it has no idea the destination arrived. On 2026-08-06 that had the Karoo
     /// reconnecting over and over to re-read a waypoint it already had.
     private func scheduleDeliveryFinish() {
-        guard mode == .waypoint else { return }   // the HR harness must keep going
         deliveryTimer?.invalidate()
         deliveryTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) {
             [weak self] _ in
