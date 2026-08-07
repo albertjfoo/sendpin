@@ -1,48 +1,22 @@
 <!--
-  Pin with a plus: add this place. Matches the Figma logo.
+  The SendPin mark: a pin with a plus. Path taken verbatim from the Figma SVG
+  export, so this is the same artwork as the App Store icon rather than a
+  redrawing of it.
 
-  Black on Hammerhead's #FFE900, which is their own yellow — it appears in
-  io.hammerhead.rideapp's resources, so the icon sits naturally next to their
-  apps without borrowing their hammerhead-shark mark.
-
-  108x108 is the adaptive-icon viewport. Launchers may mask anything outside
-  the centre 72x72, so the drawing is scaled and centred to sit inside it.
+  Viewport is 1024 to match that export. The adaptive-icon safe zone is the
+  centre 66%, i.e. 170..853 here; the artwork spans roughly 273..803 including
+  stroke width, so it survives any mask a launcher applies without scaling.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
 
-    <group
-        android:scaleX="0.88"
-        android:scaleY="0.88"
-        android:translateX="4.6"
-        android:translateY="8.0">
-
-        <!-- Pin outline, left open on the lower right so the plus sits in a gap
-             rather than colliding with the stroke. -->
-        <path
-            android:strokeColor="#141414"
-            android:strokeWidth="7"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round"
-            android:fillColor="#00000000"
-            android:pathData="M50,90 C50,90 24,64 24,42 A26,26 0 1 1 76,42" />
-
-        <!-- The pin's eye. -->
-        <path
-            android:strokeColor="#141414"
-            android:strokeWidth="7"
-            android:fillColor="#00000000"
-            android:pathData="M50,40 m-14,0 a14,14 0 1 0 28,0 a14,14 0 1 0 -28,0" />
-
-        <!-- Plus. -->
-        <path
-            android:strokeColor="#141414"
-            android:strokeWidth="7"
-            android:strokeLineCap="round"
-            android:fillColor="#00000000"
-            android:pathData="M66,74 L92,74 M79,61 L79,87" />
-    </group>
+    <path
+        android:strokeColor="#111111"
+        android:strokeWidth="50"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M618.688 672.018H778.688M698.688 592.011V752.026M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z" />
 </vector>
