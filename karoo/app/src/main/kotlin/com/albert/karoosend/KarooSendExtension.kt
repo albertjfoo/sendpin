@@ -124,12 +124,18 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
                         ?: continue
 
                     val waypoint = client.read(device)
-                    if (waypoint != null && !isDuplicate(waypoint)) {
+                    val isRepeat = waypoint != null && isDuplicate(waypoint)
+                    if (waypoint != null && !isRepeat) {
                         navigateTo(waypoint)
                     }
-                    // Settle before acting on the next sighting. The scan itself
-                    // keeps running throughout — it is never restarted here.
-                    delay(RESCAN_DELAY_MS)
+
+                    // The phone keeps advertising long after a send — it has no
+                    // idea we already have the destination. Reconnecting every
+                    // couple of seconds to rediscover the same waypoint cost 25
+                    // connections to deliver one destination on 2026-08-06, wore
+                    // both batteries, and made status=133 failures more likely.
+                    // Once a waypoint is known, check back rarely.
+                    delay(if (isRepeat) SETTLED_DELAY_MS else RESCAN_DELAY_MS)
                 }
             } finally {
                 scan?.let { client.stopScan(it) }
@@ -150,8 +156,13 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             Log.i(TAG, "ignoring repeat of $waypoint")
         } else {
             lastWaypoint = waypoint
-            lastWaypointAt = now
         }
+        // Sliding window, deliberately refreshed even for repeats. With a fixed
+        // window the phone simply left advertising would re-open the pin drop
+        // every two minutes, forever. Now the destination only fires again if it
+        // goes away for the whole window and then comes back — i.e. if you
+        // actually re-send it.
+        lastWaypointAt = now
         return same
     }
 
@@ -236,6 +247,7 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         private const val EXTENSION_ID = "karoo2send"
         private const val ACTION_FETCH = "fetch"
         private const val RESCAN_DELAY_MS = 2_000L
+        private const val SETTLED_DELAY_MS = 20_000L
         private const val DUPLICATE_WINDOW_MS = 120_000L
         private const val RADIO_RETRY_MS = 10_000L
         private const val ADAPTER_RECHECK_MS = 15_000L
