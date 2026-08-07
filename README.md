@@ -11,38 +11,29 @@ You:
 
 - Have a **Hammerhead Karoo 2**, and don't want to upgrade to a Karoo 3 just to
   get this one feature from its companion app.
-- Don't want to pay for a SIM card, and don't find the Waypoints extension all
-  that useful.
-- Are savvy enough around a computer to solve a problem whose effort-to-payoff
-  ratio is, frankly, questionable.
-
-That last one deserves honesty: getting this onto a Karoo 2 needs a computer, a
-USB cable, and a couple of `adb` commands. It's a faff. Whether that's worth it
-for a feature you might use a handful of times a month is genuinely your call.
+- Don't want to pay for a SIM card, and therefore can't use the Waypoints
+  extension.
+- Are savvy enough to sideload an Android app.
 
 ## The problem
 
 Often when I go on a ride, especially somewhere I don't know well, I look up a
-café or somewhere to eat on my phone — Apple or Google Maps. Even when I have a
-set route, I usually don't have that destination picked in advance; I just find a
-spot as I'm rolling through a town.
+café or somewhere to eat on my phone. Even when I have a set route, I usually
+don't have that destination picked in advance; I just find a spot as I'm rolling
+through a town.
 
-Which leaves me riding one-handed with my phone out, or trying to memorise four
-turns and inevitably pulling my phone back out to check. That's how I lead my
-group ride astray, make everyone U-turn, and annoy drivers in the process.
+Which leaves me riding one-handed with my phone out, or trying to memorise the
+route and inevitably pulling my phone back out to check.
 
-Meanwhile I have a bike computer I specifically bought *for navigation*.
-Whenever I actually use it, I come off as a local and get promoted to ride
-leader — for a few blocks, at least, until we reach the pitstop.
+Meanwhile I have a bike computer I specifically bought for navigation. It's
+great, but its search experience will never match what I get on my phone.
 
-So what I want is simple: look something up in Google or Apple Maps, send it to
-my bike computer, and let the Karoo take it from there. Maps has the best search
-experience by a mile. But unless you've got a bulky phone mount on your bars,
-searching on the phone and navigating on the phone are two different things.
+So what I want is simple: look up a place on my phone, send it to my bike
+computer, and let the Karoo take it from there.
 
-To be clear: **this is already a solved problem** via the companion apps on
-Hammerhead, Garmin and Wahoo. Just not on the Karoo 2. See the *who this is for*
-section.
+To be clear: **this is already a solved problem** via the companion apps on the
+Hammerhead Karoo 3, Garmin and Wahoo. Just not on the Karoo 2. See the *who this
+is for* section.
 
 ## How it works
 
@@ -71,41 +62,30 @@ In slightly more detail:
 4. It hands the destination to the Karoo's **own navigation**, which opens its
    normal Map Pin screen — the same one you'd get from dropping a pin by hand.
 
-The phone stops broadcasting as soon as the Karoo has taken the destination, so
-nothing is left chattering in your pocket.
+The phone stops broadcasting as soon as the Karoo has taken the destination.
 
 ## Installing
 
-Three pieces, in any order.
+1. **Install the iOS app** — *App Store link, coming*
+2. **Install the iOS Shortcut** — *iCloud link, coming*
+3. **Install the Karoo extension** —
+   [latest release](https://github.com/albertjfoo/sendpin/releases/latest)
 
-| | |
-|---|---|
-| **iPhone app** | *App Store link — coming* |
-| **Shortcut** | *iCloud link — coming* |
-| **Karoo extension** | [Latest release](https://github.com/albertjfoo/sendpin/releases/latest) |
+   This is the most challenging part. With the Karoo plugged in over USB:
 
-### The Karoo half needs a computer, once
+   ```sh
+   adb install -r sendpin.apk
+   adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
+   ```
 
-There's no way around this, and it isn't specific to this app — it's every
-Karoo 2 extension. Hammerhead's Companion app sideloading is Karoo 3 only,
-there's nothing on the dashboard for it, and the Karoo's own browser isn't
-reachable from its launcher.
-
-So, with the Karoo plugged in over USB:
-
-```sh
-adb install -r sendpin.apk
-adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
-```
-
-That second line is **not optional**. Android 8.1 returns no Bluetooth scan
-results at all without location permission, and the extension will sit there
-looking perfectly healthy while finding absolutely nothing. The app also asks for
-it on first launch, so granting it on the device works just as well.
+   That second line is **not optional**. Android 8.1 returns no Bluetooth scan
+   results at all without location permission, and the extension will sit there
+   looking perfectly healthy while finding absolutely nothing. The app also asks
+   for it on first launch, so granting it on the device works just as well.
 
 ## Using it
 
-1. Find a place in **Apple Maps**
+1. Find a place in **Apple Maps** (Google Maps isn't available yet)
 2. **Share** → **Send to Karoo**
 3. SendPin opens and starts broadcasting — leave it on screen
 4. The Karoo beeps and shows the pin, ready to navigate
@@ -116,13 +96,7 @@ it on first launch, so granting it on the device works just as well.
   from non-Apple devices the moment an app goes to the background. That's an iOS
   rule, not something an app can work around.
 - **The Karoo needs a GPS fix**, and the relevant offline map region downloaded.
-  Indoors you'll get the pin and a "GPS required" — that's the Karoo being
-  sensible, not a bug.
-- **It's one tap on the phone and one confirm on the Karoo.** The pin screen asks
-  before it reroutes you, which is probably what you want mid-ride.
-- **Google Maps isn't supported yet.** Its share links are short redirects that
-  contain no coordinates at all — see [PROTOCOL.md](PROTOCOL.md) for what was
-  tried and why it's parked.
+  Indoors you'll get the pin and a "GPS required".
 
 ## Why I built this
 
@@ -136,12 +110,11 @@ Bluetooth — much like your power meter does — carrying a latitude and longit
 and your Karoo reading it.
 
 I built it in an afternoon. Given how niche this is — Hammerheads aren't as
-common as Wahoos or Garmins, and the Karoo 3 already solves this — I'm not sure
-I'll take it much further. It already scratches the itch I built it for.
+common as Wahoos or Garmins, and the Karoo 3 already solves this — how much more
+I add to it is TBD. As of right now, it simply solves what I originally intended.
 
-If it scratches yours too, brilliant. If something's broken,
-[open an issue](https://github.com/albertjfoo/sendpin/issues), just don't expect
-enterprise support.
+If something's broken, [open an issue](https://github.com/albertjfoo/sendpin/issues).
+If you have other ideas or feedback, I'd love to hear them.
 
 ## Building it yourself
 
