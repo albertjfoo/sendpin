@@ -151,14 +151,31 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 That only proves it compiles. The Simulator cannot advertise, so it can never prove
 anything about BLE.
 
-## Status
+## Status — end to end on hardware, 2026-08-06
+
+**The core works.** A destination set on the iPhone appears on the Karoo's native
+pin-drop screen by itself, with nothing touched on the head unit.
+
+```
+18:35:43.822  scan hit rssi=-22
+18:35:43.834  matched peripheral, connecting immediately
+18:35:45.496  mtu=185, discovering services
+18:35:45.554  parsed Waypoint(lat=51.0, lng=-0.12, name=...)
+              -> LaunchPinDrop -> native pin drop UI on the Karoo
+```
 
 | | |
 |---|---|
-| Builds clean, no warnings | ✅ 2026-08-06 |
-| Payload + URL parsing verified (19 checks) | ✅ 2026-08-06 |
-| Run on a physical iPhone | ❌ blocked, see below |
-| Milestone 1 — iPhone in Karoo's Add Sensor list | ❌ not attempted |
+| iOS app builds, installs, advertises | ✅ |
+| Karoo discovers + connects to the iPhone | ✅ |
+| Waypoint JSON transferred over GATT | ✅ ~1.9s, MTU 185, single read |
+| `RequestBluetooth` holds the radio | ✅ `request ble karoo2send` in the coordinator log |
+| `LaunchPinDrop` opens native navigation | ✅ confirmed on screen |
+| Duplicate suppression | ✅ re-reads are ignored for 2 min |
+| **Maps → Shortcut → `karoosend://`** | ❌ **not built — the last gap** |
+
+Until the Shortcut exists, destinations are typed into the app by hand. The app
+already accepts the URL; nothing yet produces it from a Maps share.
 
 ## ⛔ Blocker: Xcode is too old for the phone
 
