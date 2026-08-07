@@ -1,0 +1,42 @@
+<!--
+  A bike computer with a destination pin on its screen.
+
+  Deliberately NOT Hammerhead's hammerhead-shark mark — that is their
+  trademark, and this app is meant to be distributable. Evoking the device
+  is fine; wearing their badge is not.
+
+  108x108 is the adaptive-icon viewport; the launcher may mask or crop
+  anything outside the centre 72x72, so all detail stays well inside.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Head unit body: outer rounded rect with the screen knocked out of it
+         via evenOdd, so the frame reads as an outline at small sizes. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M36,20 h36 a9,9 0 0 1 9,9 v50 a9,9 0 0 1 -9,9 h-36 a9,9 0 0 1 -9,-9 v-50 a9,9 0 0 1 9,-9 z M35,30 h38 v48 h-38 z" />
+
+    <!-- Route sweeping across the screen, passing under the pin. -->
+    <path
+        android:strokeColor="#5A6472"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M38,70 C46,70 46,62 54,62 C62,62 62,56 70,56" />
+
+    <!-- The destination. Centred on the screen so it reads instantly. -->
+    <group
+        android:scaleX="1.05"
+        android:scaleY="1.05"
+        android:translateX="41.4"
+        android:translateY="29.4">
+        <path
+            android:fillColor="#0A84FF"
+            android:pathData="M12,2C8.13,2 5,5.13 5,9c0,5.25 7,13 7,13s7,-7.75 7,-13c0,-3.87 -3.13,-7 -7,-7zM12,11.5c-1.38,0 -2.5,-1.12 -2.5,-2.5s1.12,-2.5 2.5,-2.5 2.5,1.12 2.5,2.5 -1.12,2.5 -2.5,2.5z" />
+    </group>
+</vector>
