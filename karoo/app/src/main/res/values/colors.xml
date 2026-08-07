@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark, so the white device outline carries the shape on the Karoo's
+         own dark launcher as well as on a light Android one. -->
+    <color name="ic_launcher_background">#12161C</color>
+</resources>
