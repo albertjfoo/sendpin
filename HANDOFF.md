@@ -172,10 +172,25 @@ pin-drop screen by itself, with nothing touched on the head unit.
 | `RequestBluetooth` holds the radio | ✅ `request ble karoo2send` in the coordinator log |
 | `LaunchPinDrop` opens native navigation | ✅ confirmed on screen |
 | Duplicate suppression | ✅ re-reads are ignored for 2 min |
-| **Maps → Shortcut → `karoosend://`** | ❌ **not built — the last gap** |
+| Apple Maps → Shortcut → `karoosend://` | ✅ verified with Apple's own share URL |
+| Real turn-by-turn navigation | ✅ outdoors, once the Karoo has a GPS fix |
+| Extension screen + off switch on the Karoo | ✅ in the app list |
+| Google Maps sharing | ⏸️ tabled — see PROTOCOL.md |
 
-Until the Shortcut exists, destinations are typed into the app by hand. The app
-already accepts the URL; nothing yet produces it from a Maps share.
+**The project works.** Share a place from Apple Maps and the Karoo opens its
+native pin drop, then navigates. Roughly two seconds from tapping share.
+
+Known limits, none of them unknowns:
+
+- The phone app must be **open and on screen** when sending (R3, unfixable).
+- `LaunchPinDrop` is confirm-then-navigate, so it is one tap on the phone and
+  one confirm on the head unit (R9).
+- Navigation needs a **GPS fix** and the relevant **offline map region**. Indoors
+  the pin arrives and the Karoo says GPS is required — that is not a fault.
+- Battery is unmeasured. Scanning is `SCAN_MODE_LOW_POWER` (~10% duty) and the
+  extension holds the radio on via `RequestBluetooth`, overriding the
+  coordinator's habit of powering Bluetooth down. Measure with:
+  `adb shell dumpsys batterystats --charged com.albert.karoosend`
 
 ## ⛔ Blocker: Xcode is too old for the phone
 
@@ -226,17 +241,51 @@ mode. The shipping app advertises the custom waypoint service alone.
    Karoo logs from the same machine instead of hopping back to the NUC. Milestone 1
    doesn't need it — you just look at the Karoo's screen.
 
-## Next actions, in order
+## Building both halves
 
-1. **Install Xcode 26** from the Mac App Store. Nothing on hardware can happen first.
-2. Open `ios/KarooSend.xcodeproj`, set the Signing team, run on the iPhone.
-3. **Milestone 1**: HR test harness mode → Karoo's Add Sensor list. Watch for
-   `SUBSCRIBED to 2A37` in the on-screen log.
-4. Then **R1** — check the Karoo's system version against the karoo-ext 1.1.3 floor.
-   Cheap, and it decides whether `LaunchPinDrop` is available at all. Do this before
-   writing significant Kotlin.
-5. Then **R2** — a Kotlin extension that dispatches `RequestBluetooth("karoo2send")`,
-   confirmed against `adb logcat | grep -i BluetoothCoordinator`.
+```
+# iOS  (Xcode 26.6, iOS 26.5 SDK, team JJ9P8ZLMH3 already in the project)
+cd ~/Developer/karoo2-send/ios
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build \
+  -scheme KarooSend -destination 'id=00008150-001674E10C69401C' \
+  -allowProvisioningUpdates -derivedDataPath ./build
+xcrun devicectl device install app --device 00008150-001674E10C69401C \
+  build/Build/Products/Debug-iphoneos/KarooSend.app
+
+# Karoo
+cd ~/Developer/karoo2-send/karoo
+JAVA_HOME=/opt/homebrew/opt/openjdk@17 \
+ANDROID_HOME=/opt/homebrew/share/android-commandlinetools \
+./gradlew :app:assembleDebug --no-daemon
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+# REQUIRED after every install — API 27 returns no scan results without it,
+# and the app has no UI to request it:
+adb shell pm grant com.albert.karoosend android.permission.ACCESS_FINE_LOCATION
+```
+
+`karoo-ext` comes from **JitPack**, not GitHub Packages — the latter demands a
+token even for public packages (401 vs 200, checked 2026-08-06).
+
+## Debugging
+
+```
+adb logcat -s KarooSend:V                                    # the extension's own log
+adb logcat -d | grep -iE "BluetoothCoordinator|request ble"  # radio claims
+adb shell dumpsys activity services com.albert.karoosend     # is it bound?
+```
+
+The iPhone app keeps its own on-screen log — use that rather than the Xcode
+console, since testing means standing over the bike with the phone in hand.
+
+## Ideas not pursued
+
+- **Ride-only scanning.** Watch `RideState` and claim the radio only while
+  recording. Bigger battery win than the scan mode, at the cost of not being
+  able to send a destination before setting off.
+- **`PerformHardwareAction`** to synthesise the confirm press and close R9's
+  gap to true one-tap. Present in the firmware; be careful with it.
+- **`InRideAlert`** is wired up for failures but has never actually fired.
 
 ## Continuing with Claude Code
 
