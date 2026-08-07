@@ -133,6 +133,7 @@ final class KarooSendPeripheral: NSObject {
     private var hrCharacteristic: CBMutableCharacteristic?
     private var waypointCharacteristic: CBMutableCharacteristic?
     private var notifyTimer: Timer?
+    private var deliveryTimer: Timer?
     private var bpm: UInt8 = 72
 
     /// Services are added asynchronously; we must not advertise until every
@@ -179,6 +180,8 @@ final class KarooSendPeripheral: NSObject {
         wantsToAdvertise = false
         notifyTimer?.invalidate()
         notifyTimer = nil
+        deliveryTimer?.invalidate()
+        deliveryTimer = nil
         subscriberCount = 0
 
         guard let manager else { return }
@@ -497,6 +500,29 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
         if request.offset == 0 {
             readCount += 1
             append(.success, "waypoint read by central (\(payload.count) bytes)")
+        }
+
+        scheduleDeliveryFinish()
+    }
+
+    /// Stop advertising once the Karoo has actually taken the payload.
+    ///
+    /// Debounced rather than fired on the first read, because a central with a
+    /// small MTU fetches the payload as several blob reads; stopping on the
+    /// first one would cut the transfer off midway. Any further read resets the
+    /// timer, so this only fires when the central has gone quiet.
+    ///
+    /// Worth doing because the phone otherwise keeps advertising indefinitely —
+    /// it has no idea the destination arrived. On 2026-08-06 that had the Karoo
+    /// reconnecting over and over to re-read a waypoint it already had.
+    private func scheduleDeliveryFinish() {
+        guard mode == .waypoint else { return }   // the HR harness must keep going
+        deliveryTimer?.invalidate()
+        deliveryTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) {
+            [weak self] _ in
+            guard let self, self.isAdvertising else { return }
+            self.append(.success, "destination delivered — stopped advertising")
+            self.stop()
         }
     }
 }
