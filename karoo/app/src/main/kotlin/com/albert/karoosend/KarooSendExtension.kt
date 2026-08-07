@@ -36,6 +36,11 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
 
     override fun onCreate() {
         super.onCreate()
+        // Logged unconditionally and before anything can fail. Without this,
+        // silence in logcat cannot distinguish "service never created" from
+        // "created, but KarooSystemService never called back" — which cost a
+        // debugging round on 2026-08-06.
+        Log.i(TAG, "extension onCreate, id=$extension")
         karooSystem = KarooSystemService(applicationContext)
         karooSystem.connect { connected ->
             Log.i(TAG, "karoo system connected=$connected")
