@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Required since 2024. Apple flags submissions that touch a "required
+      reason" API without declaring why. This app uses UserDefaults, which is
+      on that list, so it has to be declared even though nothing is collected.
+    -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Genuinely nothing. No analytics, no accounts, no network calls at all:
+         the destination goes from the phone to the Karoo over Bluetooth and
+         never leaves the two devices. -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- CA92.1: read/write only this app's own defaults. Used for
+                     one flag — whether the setup sheet has been shown. -->
+                <string>CA92.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>
