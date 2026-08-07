@@ -53,12 +53,67 @@ to trick the radio into staying on, and it carried two nasty problems of its own
 | C1 | Extension cannot trigger native turn-by-turn | **Closed twice over.** Empirically: sideloaded WaypointsKaroo v0.93 launched real native nav on the Karoo 2. Officially: `LaunchPinDrop` is a supported karoo-ext effect, so no undocumented intent is needed. |
 | C2 | Karoo 2 cannot see BLE peripherals at all | Closed. nRF Connect on the Karoo listed many nearby devices — whenever the radio was on. |
 | C3 | Unexplained discovery failure against the iPhone | Closed, root-caused. LightBlue advertises only a local name and never the `180D` service UUID; Karoo filters scans by service UUID. Confirmed by scanning the phone from a Linux box: `Name: Heart Rate` with no `UUIDs:` field, while another device in the same scan did report one. Not a Karoo defect. |
+| C4 | The Karoo cannot discover and connect to the iPhone | **Closed empirically 2026-08-06.** The KarooSend app advertised `180D` in the advertisement packet; the Karoo listed it under Add Sensor, connected, and bonded. The failure C3 diagnosed on paper is fixed in practice. |
+| C5 | R1 + R2 — firmware too old for `LaunchPinDrop`; `RequestBluetooth` unverified | **Closed 2026-08-06 by inspecting the device itself.** See below. |
+
+---
+
+## R1 + R2 — CLOSED 2026-08-06, on the actual device
+
+The Karoo 2 was connected to the Mac over adb and its firmware inspected directly,
+which settled both risks without writing a line of Kotlin.
+
+```
+ro.hh.build.version   1.613.2351.12     (Ki2's documented floor: 1.527.2014)
+Android               8.1.0, API 27     ← extension must build for minSdk ≤ 27
+built                 2026-01-28        ← Karoo 2 still receiving firmware
+system apps           4.197.1
+```
+
+Every Hammerhead system APK was pulled and its dex string pool searched. The
+extension host is **`io.hammerhead.appstore`**, and it contains all three effects
+the design depends on:
+
+```
+io.hammerhead.karooext.models.LaunchPinDrop
+io.hammerhead.karooext.models.RequestBluetooth
+io.hammerhead.karooext.models.ReleaseBluetooth
+
+LaunchPinDrop(pin=          ← Kotlin data class toString templates, i.e. the
+RequestBluetooth(resourceId=   compiled implementations are present, not just
+ReleaseBluetooth(resourceId=   names carried in by a client library
+```
+
+`io.hammerhead.karooext.models.Symbol.POI` is present too. So the payload type,
+the pin-drop effect and the Bluetooth claim all exist on **this** unit's firmware.
+
+**Useful surface found alongside them**, worth designing around:
+
+| Model | Why it matters here |
+|---|---|
+| `InRideAlert` | confirm a received destination on screen mid-ride |
+| `PlayBeepPattern` | audible confirmation, so you needn't look down |
+| `OnNavigationState.NavigatingToDestination` | observe whether nav actually started |
+| `OnGlobalPOIs` | read existing POIs |
+| `PerformHardwareAction.*` | synthesise button presses, e.g. to dismiss the pin dialog |
+
+`PerformHardwareAction` is interesting against R9 — if `LaunchPinDrop` really is
+confirm-then-navigate, a synthesised press might close the gap to true one-tap.
+Unverified, and worth being careful with.
+
+**Also learned:** WaypointsKaroo (`de.dimskiy.waypoints` v0.93, minSdk 23) declares
+no extension service at all — only a launcher activity. So the native nav launch
+proven on the NUC went through a raw intent, not karoo-ext. The intent path is
+`io.hammerhead.intent.action.MAP_PIN` → `io.hammerhead.rideapp/.mapPin.MapPinActivity`,
+which gives the project a **second, independent route** if the SDK one disappoints.
 
 ---
 
 ## OPEN — HIGH
 
-### R1. Host firmware may be too old for these APIs
+### ~~R1. Host firmware may be too old for these APIs~~ — CLOSED, see above
+
+*Original text retained for context.*
 `LaunchPinDrop` requires karoo-ext **≥ 1.1.3**; `distancesAlongRoute` arrived in 1.1.6.
 karoo-ext features are gated on the **host Karoo firmware**, not just the library you
 compile against. The Karoo 2 is the older generation and no longer Hammerhead's focus,
@@ -72,7 +127,11 @@ undocumented-intent path that Waypoints/CupRoute use.
 karoo-ext 1.1.3+ requires. Ki2 documents a floor of `1.527.2014` for its own features —
 a useful reference point.
 
-### R2. `RequestBluetooth` is unverified in practice
+### ~~R2. `RequestBluetooth` is unverified in practice~~ — the API is CONFIRMED present; runtime behaviour still untested
+
+*Its existence on this firmware is no longer in doubt. What remains unknown is how
+long the claim persists, whether it survives backgrounding, and whether it works
+outside a ride — all cheap to answer once the extension exists.*
 The API exists and its semantics match the coordinator's client model exactly, but we
 have not seen an extension actually hold the radio with it. Unknowns: whether it works
 on Karoo 2 firmware, how long the claim persists, whether it survives backgrounding,

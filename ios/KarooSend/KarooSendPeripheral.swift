@@ -69,7 +69,7 @@ enum AdvertisingMode: String, CaseIterable, Identifiable {
         case .heartRateTestHarness:
             "Advertises service 180D as \"KarooSend\". Look for it in Karoo → Settings → Sensors → Add Sensor → Heart Rate."
         case .waypoint:
-            "Advertises only the custom waypoint service, no local name. Needs the Karoo extension to be listening."
+            "Advertises \"KSend\" plus the custom waypoint service. Read it with nRF Connect on the Karoo, or with the extension once it exists."
         }
     }
 }
@@ -305,11 +305,22 @@ final class KarooSendPeripheral: NSObject {
             data[CBAdvertisementDataLocalNameKey] = "KarooSend"
 
         case .waypoint:
-            // R5: the advertisement is ~31 bytes and a 128-bit UUID eats 16 of
-            // them. Adding a local name on top pushes data into the Apple-only
-            // "overflow area", where an Android central like the Karoo cannot
-            // see it. So: UUID only, no name.
+            // R5: the advertisement is 31 bytes and a 128-bit UUID eats most of
+            // it. Overflow gets pushed to the Apple-only overflow area, where an
+            // Android central like the Karoo cannot see it — so the budget is
+            // real and worth counting rather than guessing at:
+            //
+            //   flags                    3
+            //   128-bit service UUID  2 + 16
+            //   local name "KSend"    2 +  5
+            //                         --------
+            //                              28  of 31
+            //
+            // Three bytes spare, so a name this short is safe and makes the
+            // device findable in a scanner instead of an anonymous row. Do not
+            // lengthen it without redoing this arithmetic.
             data[CBAdvertisementDataServiceUUIDsKey] = [KarooSendBLE.waypointService]
+            data[CBAdvertisementDataLocalNameKey] = "KSend"
         }
 
         manager.startAdvertising(data)
@@ -417,7 +428,7 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
             append(.success, "advertising as \"KarooSend\" with 180D in the packet")
             append(.info, "now open Karoo → Settings → Sensors → Add Sensor → Heart Rate")
         case .waypoint:
-            append(.success, "advertising waypoint service, no local name")
+            append(.success, "advertising \"KSend\" + waypoint service UUID")
             append(.info, "serving \(waypoint.summary) — \(servedPayload.count) bytes")
         }
     }
