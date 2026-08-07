@@ -1,6 +1,6 @@
 //
-//  KarooSendPeripheral.swift
-//  karoo2-send
+//  SendPinPeripheral.swift
+//  sendpin
 //
 //  The iPhone half of the link: a BLE peripheral that holds a {lat, lng, name}
 //  waypoint in a GATT characteristic and waits for the Karoo to come read it.
@@ -23,7 +23,7 @@ import Observation
 
 /// The wire contract with the Karoo extension. Changing either UUID means
 /// changing the Kotlin side in lockstep — see PROTOCOL.md.
-enum KarooSendBLE {
+enum SendPinBLE {
     /// Custom waypoint service. Random 128-bit UUID: deliberately *not* built
     /// on the Bluetooth SIG base (`…-0000-1000-8000-00805F9B34FB`), so neither
     /// CoreBluetooth nor Android's ParcelUuid will silently shorten it to 16
@@ -50,7 +50,7 @@ struct PeripheralLogEntry: Identifiable {
 // MARK: - Peripheral
 
 @Observable
-final class KarooSendPeripheral: NSObject {
+final class SendPinPeripheral: NSObject {
 
     // MARK: Observable state
 
@@ -184,13 +184,13 @@ final class KarooSendPeripheral: NSObject {
         // .read for the payload, .notify so the extension can subscribe and be
         // pushed a new destination without reconnecting.
         let waypointChar = CBMutableCharacteristic(
-            type: KarooSendBLE.waypointCharacteristic,
+            type: SendPinBLE.waypointCharacteristic,
             properties: [.read, .notify],
             value: nil,                 // must be nil — see below
             permissions: [.readable])
         waypointCharacteristic = waypointChar
 
-        let waypointService = CBMutableService(type: KarooSendBLE.waypointService, primary: true)
+        let waypointService = CBMutableService(type: SendPinBLE.waypointService, primary: true)
         waypointService.characteristics = [waypointChar]
         pendingServiceAdds += 1
         manager.add(waypointService)
@@ -221,7 +221,7 @@ final class KarooSendPeripheral: NSObject {
         // data — which is why the waypoint travels over GATT rather than riding
         // in the advertisement itself.
         manager.startAdvertising([
-            CBAdvertisementDataServiceUUIDsKey: [KarooSendBLE.waypointService],
+            CBAdvertisementDataServiceUUIDsKey: [SendPinBLE.waypointService],
             CBAdvertisementDataLocalNameKey: "KSend",
         ])
     }
@@ -243,13 +243,13 @@ final class KarooSendPeripheral: NSObject {
     /// no console to check while you are standing over the bike.
     func reportBadURL(_ url: URL) {
         append(.failure, "could not parse \(url.absoluteString)")
-        append(.info, "expected karoosend://send?lat=…&lng=…&name=…")
+        append(.info, "expected sendpin://send?lat=…&lng=…&name=…")
     }
 }
 
 // MARK: - CBPeripheralManagerDelegate
 
-extension KarooSendPeripheral: CBPeripheralManagerDelegate {
+extension SendPinPeripheral: CBPeripheralManagerDelegate {
 
     func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
         managerState = peripheral.state
@@ -341,7 +341,7 @@ extension KarooSendPeripheral: CBPeripheralManagerDelegate {
         // Every read is evidence that a central is connected and walking the
         // GATT database — the only such evidence CoreBluetooth gives us in the
         // peripheral role, since there is no didConnect callback.
-        guard request.characteristic.uuid == KarooSendBLE.waypointCharacteristic else {
+        guard request.characteristic.uuid == SendPinBLE.waypointCharacteristic else {
             // Characteristics built with a cached `value` are answered by
             // CoreBluetooth itself and never reach here, so anything landing
             // in this branch is genuinely unexpected and worth seeing.

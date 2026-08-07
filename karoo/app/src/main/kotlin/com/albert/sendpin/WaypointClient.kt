@@ -1,4 +1,4 @@
-package com.albert.karoosend
+package com.albert.sendpin
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -266,7 +266,10 @@ class WaypointClient(private val context: Context) {
 
     /** Rejects anything it cannot fully trust — a partial parse would navigate you somewhere wrong. */
     private fun parse(bytes: ByteArray): Waypoint? {
-        val text = bytes.toString(Charsets.UTF_8).trim().trimEnd(' ')
+        // trimEnd('\u0000') as an escape, never a raw NUL byte: a literal
+        // control character in source makes the file read as binary to grep,
+        // diff and review, so nobody can see what is being trimmed.
+        val text = bytes.toString(Charsets.UTF_8).trim().trimEnd('\u0000')
         return try {
             val json = JSONObject(text)
             val lat = json.getDouble("lat")
@@ -284,11 +287,11 @@ class WaypointClient(private val context: Context) {
     }
 
     companion object {
-        private const val TAG = "KarooSend"
+        private const val TAG = "SendPin"
         private const val PREFERRED_MTU = 185
         private const val SCAN_TIMEOUT_MS = 20_000L
 
-        // Must match ios/KarooSend/KarooSendPeripheral.swift — see PROTOCOL.md.
+        // Must match ios/SendPin/SendPinPeripheral.swift — see PROTOCOL.md.
         val WAYPOINT_SERVICE: UUID = UUID.fromString("4B027EEA-0001-45A6-AB37-310A7471C7DC")
         val WAYPOINT_CHARACTERISTIC: UUID = UUID.fromString("4B027EEA-0002-45A6-AB37-310A7471C7DC")
     }

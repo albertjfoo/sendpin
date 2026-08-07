@@ -1,6 +1,6 @@
 //
 //  Waypoint.swift
-//  karoo2-send
+//  sendpin
 //
 //  The payload. This struct is the wire contract between the iPhone and the
 //  Karoo extension — see PROTOCOL.md before changing anything here.
@@ -39,16 +39,16 @@ extension Waypoint {
 
     /// Parses the URL a Shortcut hands us:
     ///
-    ///     karoosend://send?lat=51.5007&lng=-0.1246&name=Big%20Ben
+    ///     sendpin://send?lat=51.5007&lng=-0.1246&name=Big%20Ben
     ///
     /// Returns nil rather than a partial waypoint — a send with a missing
     /// coordinate would silently navigate you to null island.
     init?(url: URL) {
-        guard url.scheme?.lowercased() == "karoosend",
+        guard url.scheme?.lowercased() == "sendpin",
               let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         else { return nil }
 
-        // Accept both karoosend://send?… (host == "send") and karoosend:?…
+        // Accept both sendpin://send?… (host == "send") and sendpin:?…
         if let host = components.host, !host.isEmpty, host.lowercased() != "send" {
             return nil
         }

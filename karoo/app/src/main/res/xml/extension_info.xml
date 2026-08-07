@@ -8,8 +8,8 @@
 -->
 <ExtensionInfo
     displayName="@string/extension_name"
-    icon="@drawable/ic_karoosend"
-    id="karoo2send"
+    icon="@drawable/ic_sendpin"
+    id="sendpin"
     scansDevices="false"
     mapLayer="false"
     fitFile="false">

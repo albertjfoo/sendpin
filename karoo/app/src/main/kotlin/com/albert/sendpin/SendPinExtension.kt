@@ -1,4 +1,4 @@
-package com.albert.karoosend
+package com.albert.sendpin
 
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
@@ -40,7 +40,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Every effect used here was confirmed present in this Karoo's own firmware on
  * 2026-08-06 by searching io.hammerhead.appstore's dex — see RISKS.md.
  */
-class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
+class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
 
     private lateinit var karooSystem: KarooSystemService
     // SupervisorJob alone does not save the process: an exception escaping a
@@ -205,7 +205,7 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             // The overwhelmingly likely cause is the phone not advertising:
             // iOS hides the service UUID from non-Apple devices the moment the
             // app backgrounds (RISKS.md R3). Say so rather than "failed".
-            alert("No destination found", "Open KarooSend on your phone and keep it on screen.")
+            alert("No destination found", "Open SendPin on your phone and keep it on screen.")
             return
         }
         navigateTo(waypoint)
@@ -213,7 +213,7 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
 
     private fun navigateTo(waypoint: WaypointClient.Waypoint) {
         val poi = Symbol.POI(
-            id = "karoo2send-${System.currentTimeMillis()}",
+            id = "sendpin-${System.currentTimeMillis()}",
             lat = waypoint.lat,
             lng = waypoint.lng,
             name = waypoint.name,
@@ -241,8 +241,8 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         Log.w(TAG, "$title — $detail")
         karooSystem.dispatch(
             InRideAlert(
-                id = "karoo2send-${System.currentTimeMillis()}",
-                icon = R.drawable.ic_karoosend,
+                id = "sendpin-${System.currentTimeMillis()}",
+                icon = R.drawable.ic_sendpin,
                 title = title,
                 detail = detail,
                 autoDismissMs = 6_000L,
@@ -264,8 +264,8 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
     }
 
     companion object {
-        private const val TAG = "KarooSend"
-        private const val EXTENSION_ID = "karoo2send"
+        private const val TAG = "SendPin"
+        private const val EXTENSION_ID = "sendpin"
         private const val ACTION_FETCH = "fetch"
         private const val RESCAN_DELAY_MS = 2_000L
         private const val SETTLED_DELAY_MS = 20_000L

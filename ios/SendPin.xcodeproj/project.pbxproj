@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		4B02000000000000000000A5 /* KarooSend.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KarooSend.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B02000000000000000000A5 /* SendPin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SendPin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4B02000000000000000000A6 /* KarooSend */ = {
+		4B02000000000000000000A6 /* SendPin */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = KarooSend;
+			path = SendPin;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -32,7 +32,7 @@
 		4B02000000000000000000A2 = {
 			isa = PBXGroup;
 			children = (
-				4B02000000000000000000A6 /* KarooSend */,
+				4B02000000000000000000A6 /* SendPin */,
 				4B02000000000000000000A3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -40,7 +40,7 @@
 		4B02000000000000000000A3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4B02000000000000000000A5 /* KarooSend.app */,
+				4B02000000000000000000A5 /* SendPin.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,9 +48,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4B02000000000000000000A4 /* KarooSend */ = {
+		4B02000000000000000000A4 /* SendPin */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4B02000000000000000000B2 /* Build configuration list for PBXNativeTarget "KarooSend" */;
+			buildConfigurationList = 4B02000000000000000000B2 /* Build configuration list for PBXNativeTarget "SendPin" */;
 			buildPhases = (
 				4B02000000000000000000A7 /* Sources */,
 				4B02000000000000000000A8 /* Frameworks */,
@@ -61,13 +61,13 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				4B02000000000000000000A6 /* KarooSend */,
+				4B02000000000000000000A6 /* SendPin */,
 			);
-			name = KarooSend;
+			name = SendPin;
 			packageProductDependencies = (
 			);
-			productName = KarooSend;
-			productReference = 4B02000000000000000000A5 /* KarooSend.app */;
+			productName = SendPin;
+			productReference = 4B02000000000000000000A5 /* SendPin.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -85,7 +85,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4B02000000000000000000B1 /* Build configuration list for PBXProject "KarooSend" */;
+			buildConfigurationList = 4B02000000000000000000B1 /* Build configuration list for PBXProject "SendPin" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -99,7 +99,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				4B02000000000000000000A4 /* KarooSend */,
+				4B02000000000000000000A4 /* SendPin */,
 			);
 		};
 /* End PBXProject section */
@@ -184,13 +184,13 @@
 				DEVELOPMENT_TEAM = JJ9P8ZLMH3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "KarooSend-Info.plist";
+				INFOPLIST_FILE = "SendPin-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.albert.karoosend;
+				PRODUCT_BUNDLE_IDENTIFIER = com.albert.sendpin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -206,13 +206,13 @@
 				DEVELOPMENT_TEAM = JJ9P8ZLMH3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = "KarooSend-Info.plist";
+				INFOPLIST_FILE = "SendPin-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.albert.karoosend;
+				PRODUCT_BUNDLE_IDENTIFIER = com.albert.sendpin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -223,7 +223,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4B02000000000000000000B1 /* Build configuration list for PBXProject "KarooSend" */ = {
+		4B02000000000000000000B1 /* Build configuration list for PBXProject "SendPin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4B02000000000000000000B3 /* Debug */,
@@ -232,7 +232,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4B02000000000000000000B2 /* Build configuration list for PBXNativeTarget "KarooSend" */ = {
+		4B02000000000000000000B2 /* Build configuration list for PBXNativeTarget "SendPin" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4B02000000000000000000B5 /* Debug */,

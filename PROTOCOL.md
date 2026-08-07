@@ -1,11 +1,11 @@
-# karoo2-send — wire protocol
+# sendpin — wire protocol
 
 The contract between the iPhone app and the Karoo extension. Pinned 2026-08-06.
 Both sides must change together; nothing else in either codebase should hardcode
 these values.
 
-Implemented on the iOS side in [`ios/KarooSend/KarooSendPeripheral.swift`](ios/KarooSend/KarooSendPeripheral.swift)
-(`enum KarooSendBLE`) and [`ios/KarooSend/Waypoint.swift`](ios/KarooSend/Waypoint.swift).
+Implemented on the iOS side in [`ios/SendPin/SendPinPeripheral.swift`](ios/SendPin/SendPinPeripheral.swift)
+(`enum SendPinBLE`) and [`ios/SendPin/Waypoint.swift`](ios/SendPin/Waypoint.swift).
 
 ## UUIDs
 
@@ -32,7 +32,7 @@ advertisement (R4); the Karoo must connect and read.
 | Mode | Advertised |
 |---|---|
 | Waypoint (product) | service UUID only, **no local name** |
-| HR test harness (milestone 1) | `180D` + local name `KarooSend` |
+| HR test harness (milestone 1) | `180D` + local name `SendPin` |
 
 The advertisement is ~31 bytes and a 128-bit UUID consumes 16 of them. Adding a
 local name alongside it pushes data into Apple's "overflow area", which only
@@ -75,7 +75,7 @@ Not yet written. Constraints confirmed on the actual unit 2026-08-06:
 
 Target sequence:
 
-1. `RequestBluetooth("karoo2send")` — claim the radio from Hammerhead's
+1. `RequestBluetooth("sendpin")` — claim the radio from Hammerhead's
    `BluetoothCoordinator`. **Unverified on device (R2).**
 2. Scan filtered on the waypoint service UUID. **Never cache a MAC address** —
    iOS rotates its resolvable private address roughly every 15 minutes (R6).
@@ -85,17 +85,17 @@ Target sequence:
 4. Decode JSON → `Symbol.POI(id:, lat:, lng:, name:)`.
 5. `LaunchPinDrop(poi)` — requires karoo-ext ≥ 1.1.3, gated on host firmware.
    **Unverified (R1).**
-6. `ReleaseBluetooth("karoo2send")` — don't hold the radio for a whole ride.
+6. `ReleaseBluetooth("sendpin")` — don't hold the radio for a whole ride.
 
 ## URL intake (iPhone side)
 
 The Shortcut that receives a Maps share opens:
 
 ```
-karoosend://send?lat=51.50072&lng=-0.12462&name=Big%20Ben
+sendpin://send?lat=51.50072&lng=-0.12462&name=Big%20Ben
 ```
 
-Accepted variants: `karoosend:?…` with no host; `lon` or `long` as aliases for
+Accepted variants: `sendpin:?…` with no host; `lon` or `long` as aliases for
 `lng`; any case of scheme and parameter names. A URL missing `lat` or `lng`, or
 carrying an out-of-range coordinate, is **rejected outright** and reported
 on screen — a partial parse would silently navigate you to null island.

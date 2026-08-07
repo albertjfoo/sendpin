@@ -1,14 +1,14 @@
 //
-//  KarooSendApp.swift
-//  karoo2-send
+//  SendPinApp.swift
+//  sendpin
 //
 
 import SwiftUI
 
 @main
-struct KarooSendApp: App {
+struct SendPinApp: App {
 
-    @State private var peripheral = KarooSendPeripheral()
+    @State private var peripheral = SendPinPeripheral()
 
     var body: some Scene {
         WindowGroup {
