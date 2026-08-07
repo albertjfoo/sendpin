@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SendPin — send destinations to your Karoo 2</title>
+<meta name="description" content="Share a place from Apple Maps and navigate to it on a Hammerhead Karoo 2. No internet, no account, no cloud.">
+<style>
+:root {
+  --accent: #2386D9;
+  --bg: #ffffff;
+  --fg: #14181d;
+  --muted: #5c6672;
+  --card: #f5f7f9;
+  --line: #e2e7ec;
+  --warn-bg: #fff8e6;
+  --warn-line: #e8d9a8;
+  --warn-fg: #6b5310;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --fg: #e8ecf1; --muted: #9aa5b1;
+    --card: #171c22; --line: #262d36;
+    --warn-bg: #241f10; --warn-line: #4a3f1c; --warn-fg: #e6d18a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 17px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 80px; }
+header { padding: 72px 0 44px; }
+.mark { width: 68px; height: 68px; border-radius: 16px; background: var(--accent);
+        display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+h1 { font-size: 2.6rem; line-height: 1.12; margin: 0 0 12px; letter-spacing: -0.02em; }
+.tagline { font-size: 1.2rem; color: var(--muted); margin: 0; }
+h2 { font-size: 1.35rem; margin: 48px 0 14px; letter-spacing: -0.01em; }
+h3 { font-size: 1rem; margin: 0 0 6px; }
+p { margin: 0 0 14px; }
+a { color: var(--accent); }
+.lede { font-size: 1.05rem; }
+.flow { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+        padding: 18px 20px; overflow-x: auto; }
+.flow pre { margin: 0; font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.card .qr { width: 132px; height: 132px; margin: 14px 0 12px; background: #fff;
+            border-radius: 8px; padding: 8px; display: none; }
+.card .qr img, .card .qr canvas { width: 100%; height: 100%; display: block; }
+.step { color: var(--accent); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.07em;
+        text-transform: uppercase; margin-bottom: 8px; }
+.card p { font-size: 0.92rem; color: var(--muted); margin: 0 0 12px; }
+.btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
+       padding: 9px 16px; border-radius: 8px; font-size: 0.92rem; font-weight: 500; }
+.soon { display: inline-block; color: var(--muted); font-size: 0.92rem; font-style: italic; }
+.note { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-fg);
+        border-radius: 12px; padding: 18px 20px; margin: 20px 0; font-size: 0.95rem; }
+.note strong { color: inherit; }
+code { background: var(--card); border: 1px solid var(--line); border-radius: 5px;
+       padding: 1px 6px; font: 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
+pre.sh { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+         padding: 16px 18px; overflow-x: auto;
+         font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; }
+ol, ul { padding-left: 22px; }
+li { margin-bottom: 7px; }
+footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
+         color: var(--muted); font-size: 0.87rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="mark">
+    <svg width="42" height="42" viewBox="0 0 108 108" aria-hidden="true">
+      <g transform="translate(1.8,6.3) scale(0.9)">
+        <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+              d="M46,88 C46,88 22,62 22,42 A24,24 0 1 1 70,42 C70,48 66,56 62,62"/>
+        <circle cx="46" cy="27" r="13" fill="none" stroke="#fff" stroke-width="6"/>
+        <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
+              d="M80,54 L94,68 L80,82 L80,74 C70,74 62,79 57,86 C58,70 68,62 80,62 Z"/>
+      </g>
+    </svg>
+  </div>
+  <h1>SendPin</h1>
+  <p class="tagline">Send a destination from your iPhone to a Karoo&nbsp;2, and navigate to it.</p>
+</header>
+
+<p class="lede">Share a place from Apple Maps and your Karoo opens its native Map Pin screen,
+ready to navigate. About two seconds. No internet on the Karoo, no account, no cloud —
+your data never leaves the two devices.</p>
+
+<p>The Karoo 3 does this natively. The Karoo 2 never got it.</p>
+
+<div class="flow">
+<pre>Apple Maps ──share──▶ Shortcut ──▶ SendPin (iPhone)
+                                        │
+                                 Bluetooth LE
+                                        ▼
+                              SendPin (Karoo 2) ──▶ navigation</pre>
+</div>
+
+<h2>Install</h2>
+<div class="cards">
+  <div class="card">
+    <div class="step">Step 1</div>
+    <h3>iPhone app</h3>
+    <p>Holds the destination and broadcasts it.</p>
+    <div class="qr" data-url=""></div>
+    <span class="soon">Coming to the App Store</span>
+  </div>
+  <div class="card">
+    <div class="step">Step 2</div>
+    <h3>Shortcut</h3>
+    <p>Adds “Send to Karoo” to the Maps share sheet.</p>
+    <div class="qr" data-url=""></div>
+    <span class="soon">Coming soon</span>
+  </div>
+  <div class="card">
+    <div class="step">Step 3</div>
+    <h3>Karoo extension</h3>
+    <p>Listens for your phone and opens the pin.</p>
+    <div class="qr" data-url="https://github.com/albertjfoo/sendpin/releases/latest"></div>
+    <a class="btn" href="https://github.com/albertjfoo/sendpin/releases/latest">Download APK</a>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Installing on the Karoo 2 needs a computer, once.</strong>
+  Hammerhead's Companion app sideloading is Karoo 3 only, there is nothing on the
+  dashboard for it, and the Karoo's own browser is not reachable from its launcher.
+  This is true of every Karoo 2 extension, not just this one.
+</div>
+
+<pre class="sh">adb install -r sendpin.apk
+adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION</pre>
+
+<p>That second line is <strong>not optional</strong> — Android 8.1 returns no Bluetooth
+scan results at all without location permission, and the app will look perfectly healthy
+while finding nothing. Granting it on the device when the app asks works just as well.</p>
+
+<h2>Using it</h2>
+<ol>
+  <li>Find a place in <strong>Apple Maps</strong></li>
+  <li><strong>Share</strong> → <strong>Send to Karoo</strong></li>
+  <li>SendPin opens and broadcasts — leave it on screen</li>
+  <li>The Karoo beeps and shows the pin, ready to navigate</li>
+</ol>
+<p>The iPhone stops broadcasting by itself once the Karoo has the destination.</p>
+
+<h2>Worth knowing</h2>
+<ul>
+  <li><strong>Keep the app on screen while sending.</strong> iPhones hide Bluetooth
+      service UUIDs from non-Apple devices as soon as an app backgrounds. An iOS rule,
+      not something an app can work around.</li>
+  <li><strong>The Karoo needs a GPS fix</strong> and the relevant offline map region.
+      Indoors you get the pin and a “GPS required”.</li>
+  <li><strong>One tap on the phone, one confirm on the Karoo.</strong> The pin screen
+      asks before rerouting you — probably what you want mid-ride.</li>
+  <li><strong>Google Maps is not supported.</strong> Its share links contain no
+      coordinates at all.</li>
+</ul>
+
+<footer>
+  <p><a href="https://github.com/albertjfoo/sendpin">Source on GitHub</a> · MIT licensed</p>
+  <p>Tested on one Karoo 2 running firmware 1.613.2351.12. Other versions unverified.
+     Not affiliated with or endorsed by Hammerhead or SRAM.</p>
+</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>
+// Render a QR for any card that has a real URL. Cards left empty stay showing
+// "coming soon" rather than encoding a dead link.
+document.querySelectorAll('.qr').forEach(function (el) {
+  var url = el.getAttribute('data-url');
+  if (!url || typeof qrcode !== 'function') return;
+  var qr = qrcode(0, 'M');
+  qr.addData(url);
+  qr.make();
+  el.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  el.style.display = 'block';
+});
+</script>
+</body>
+</html>
