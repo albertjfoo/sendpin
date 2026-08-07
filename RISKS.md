@@ -127,7 +127,30 @@ undocumented-intent path that Waypoints/CupRoute use.
 karoo-ext 1.1.3+ requires. Ki2 documents a floor of `1.527.2014` for its own features —
 a useful reference point.
 
-### ~~R2. `RequestBluetooth` is unverified in practice~~ — the API is CONFIRMED present; runtime behaviour still untested
+### ~~R2. `RequestBluetooth` is unverified in practice~~ — API confirmed, and the mechanism it plugs into was observed directly
+
+**2026-08-06, from the Karoo's own logs.** Third-party radio control is not merely
+discouraged, it is actively revoked within seconds:
+
+```
+17:42:53  Enabled by no.nordicsemi.android.mcp          (nRF Connect)
+17:42:57  BluetoothCoordinator: State(clients=[], bluetoothState=STATE_TURNING_OFF)
+17:42:58  BluetoothCoordinator: State(clients=[], bluetoothState=STATE_OFF)
+```
+
+`adb shell svc bluetooth disable/enable` is ignored for the same reason. The
+adapter history separates sanctioned from unsanctioned callers cleanly:
+
+```
+Enabled by io.hammerhead.sensorservice   <- persists
+Enabled by no.nordicsemi.android.mcp     <- revoked in ~4s
+```
+
+**`clients=[]` is the list `RequestBluetooth(resourceId)` populates.** So the effect
+is not optional garnish — without it an extension simply cannot keep the radio on.
+Corollary for hand-testing: nRF Connect can only be used while some Hammerhead
+client already holds the radio, e.g. during a ride or with the Add Sensor screen
+open. That, not any defect in the peripheral, is what blocked the waypoint read.
 
 *Its existence on this firmware is no longer in doubt. What remains unknown is how
 long the claim persists, whether it survives backgrounding, and whether it works
