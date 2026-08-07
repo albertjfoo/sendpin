@@ -3,10 +3,12 @@
 Self-contained context for continuing on the Mac. Written 2026-08-05 after the
 NUC de-risk session; updated 2026-08-06 on the Mac.
 
-> **Current state (2026-08-06):** the iOS app now exists and builds clean — see
-> [Where the code is](#where-the-code-is) and [Status](#status). It has **never
-> been run on a device**, because Xcode has to be updated first. Milestone 1 is
-> written but unproven.
+> **Current state (2026-08-06):** working end to end on hardware — share a place
+> from Apple Maps and the Karoo 2 opens its native pin drop and navigates. See
+> [Status](#status--end-to-end-on-hardware-2026-08-06).
+>
+> This file is the developer's notebook: history, dead ends, and the reasoning
+> behind decisions. For what the project *is*, read the README.
 
 ## The project
 
@@ -132,7 +134,8 @@ ios/KarooSend-Info.plist       outside the sync group on purpose — inside, it 
                                be swept into Copy Bundle Resources and collide
 ios/KarooSend/
   KarooSendApp.swift           @main, karoosend:// intake, keeps the screen awake
-  ContentView.swift            status, mode picker, manual entry, on-screen log
+  ContentView.swift            send status, destination, details sheet
+  Setup.swift                  first-run onboarding and outbound links
   KarooSendPeripheral.swift    the BLE peripheral
   Waypoint.swift               the payload + URL parsing
 PROTOCOL.md                    the iPhone ↔ Karoo wire contract
@@ -248,9 +251,9 @@ mode. The shipping app advertises the custom waypoint service alone.
 cd ~/Developer/karoo2-send/ios
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build \
-  -scheme KarooSend -destination 'id=00008150-001674E10C69401C' \
+  -scheme KarooSend -destination 'id=<your-iphone-udid>' \
   -allowProvisioningUpdates -derivedDataPath ./build
-xcrun devicectl device install app --device 00008150-001674E10C69401C \
+xcrun devicectl device install app --device <your-iphone-udid> \
   build/Build/Products/Debug-iphoneos/KarooSend.app
 
 # Karoo
