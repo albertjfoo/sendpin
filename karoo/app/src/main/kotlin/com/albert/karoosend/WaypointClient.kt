@@ -173,8 +173,24 @@ class WaypointClient(private val context: Context) {
         runCatching { adapter?.bluetoothLeScanner?.stopScan(callback) }
     }
 
+    /**
+     * Read one waypoint from an already-discovered device. Never throws.
+     *
+     * A failed connect is normal traffic, not an exceptional case: status 133
+     * is Android's catch-all GATT error and shows up routinely on a first
+     * attempt, especially when the peripheral has just started advertising.
+     * The caller is a long-lived watcher, so a throw here would take the whole
+     * extension down — which it did, once per failed connect, until this
+     * existed.
+     */
     @SuppressLint("MissingPermission")
-    suspend fun read(device: android.bluetooth.BluetoothDevice): Waypoint? = readWaypoint(device)
+    suspend fun read(device: android.bluetooth.BluetoothDevice): Waypoint? =
+        try {
+            readWaypoint(device)
+        } catch (e: Exception) {
+            Log.w(TAG, "read failed, will retry on next sighting: ${e.message}")
+            null
+        }
 
     @SuppressLint("MissingPermission")
     private suspend fun readWaypoint(device: android.bluetooth.BluetoothDevice): Waypoint? {

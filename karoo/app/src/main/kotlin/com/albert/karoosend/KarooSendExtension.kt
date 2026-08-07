@@ -11,6 +11,7 @@ import io.hammerhead.karooext.models.PlayBeepPattern
 import io.hammerhead.karooext.models.ReleaseBluetooth
 import io.hammerhead.karooext.models.RequestBluetooth
 import io.hammerhead.karooext.models.Symbol
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,7 +43,14 @@ import kotlinx.coroutines.withTimeoutOrNull
 class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
 
     private lateinit var karooSystem: KarooSystemService
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    // SupervisorJob alone does not save the process: an exception escaping a
+    // launched coroutine still reaches the default handler and kills it. This
+    // extension is meant to sit watching for hours, so anything unforeseen
+    // should be logged and survived rather than fatal.
+    private val crashGuard = CoroutineExceptionHandler { _, e ->
+        Log.e(TAG, "watcher coroutine failed, extension stays alive", e)
+    }
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob() + crashGuard)
     private var inFlight: Job? = null
     private var watcher: Job? = null
     private var lastWaypoint: WaypointClient.Waypoint? = null
