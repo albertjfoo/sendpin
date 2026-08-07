@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Schema taken from the karoo-ext sample app, not guessed:
+  https://github.com/hammerheadnav/karoo-ext/blob/master/app/src/main/res/xml/extension_info.xml
+
+  scansDevices/mapLayer/fitFile are all false — this extension contributes no
+  sensors, no map layer and no FIT data. It exists to answer one bonus action.
+-->
+<ExtensionInfo
+    displayName="@string/extension_name"
+    icon="@drawable/ic_karoosend"
+    id="karoo2send"
+    scansDevices="false"
+    mapLayer="false"
+    fitFile="false">
+    <BonusAction
+        displayName="@string/action_fetch"
+        actionId="fetch" />
+</ExtensionInfo>

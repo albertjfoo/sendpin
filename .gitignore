@@ -5,3 +5,7 @@ xcuserdata/
 *.xcuserstate
 *.xcworkspace/xcuserdata/
 ios/build/
+karoo/build/
+karoo/app/build/
+karoo/.gradle/
+karoo/local.properties

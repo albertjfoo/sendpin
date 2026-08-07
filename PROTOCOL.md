@@ -61,7 +61,19 @@ tear. `send(_:)` re-pins them and pushes to subscribers via notify.
 
 ## Karoo extension flow
 
-Not yet written. Target sequence:
+Not yet written. Constraints confirmed on the actual unit 2026-08-06:
+
+- **`minSdk` ≤ 27** — the Karoo 2 runs Android 8.1.0. Not negotiable.
+- **`RequestBluetooth` is mandatory, not optional.** The coordinator revokes any
+  radio claim it doesn't recognise within ~4 seconds (see RISKS.md R2). An
+  extension that skips it will find the adapter switched off underneath it.
+- **Never bond, and never cache an address.** A hand-driven bond attempt wedged
+  the Karoo's stack badly enough to need a Bluetooth process restart, because
+  iOS rotated its address mid-pairing.
+- **Connect immediately on scan match.** Minutes-old scan results point at
+  addresses that no longer exist.
+
+Target sequence:
 
 1. `RequestBluetooth("karoo2send")` — claim the radio from Hammerhead's
    `BluetoothCoordinator`. **Unverified on device (R2).**

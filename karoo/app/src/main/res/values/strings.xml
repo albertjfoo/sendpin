@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="extension_name">KarooSend</string>
+    <string name="action_fetch">Get destination from phone</string>
+</resources>

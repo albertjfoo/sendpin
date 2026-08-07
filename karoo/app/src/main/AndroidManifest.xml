@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      API 27 permission model. BLUETOOTH_SCAN/CONNECT are the API 31+ successors
+      and are declared with maxSdkVersion guards on the old pair so this still
+      builds against compileSdk 35 without nagging.
+
+      ACCESS_FINE_LOCATION is the one that bites: on Android 8.1 a BLE scan
+      silently returns NO results without it, and it is a runtime permission
+      with no UI in this app to request it. Grant it by hand after install:
+
+        adb shell pm grant com.albert.karoosend android.permission.ACCESS_FINE_LOCATION
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/ic_karoosend"
+        android:label="@string/extension_name">
+
+        <!--
+          Bound by the Karoo system (io.hammerhead.appstore) via this action.
+          Action name and meta-data key are from karoo-ext Constants.kt:
+            KAROO_EXTENSION_INTENT_FILTER = io.hammerhead.karooext.KAROO_EXTENSION
+            EXTENSION_INFO_META_KEY       = io.hammerhead.karooext.EXTENSION_INFO
+        -->
+        <service
+            android:name=".KarooSendExtension"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="io.hammerhead.karooext.KAROO_EXTENSION" />
+            </intent-filter>
+            <meta-data
+                android:name="io.hammerhead.karooext.EXTENSION_INFO"
+                android:resource="@xml/extension_info" />
+        </service>
+    </application>
+</manifest>
