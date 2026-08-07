@@ -14,16 +14,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  * Receives a destination from the iPhone over BLE and hands it to the Karoo's
  * own navigation.
  *
- * Flow, triggered by the "Get destination from phone" bonus action:
+ * The trigger is the phone, not the head unit. Sending is meant to feel like a
+ * push from your pocket, so the extension scans continuously and reacts on its
+ * own; nothing is touched on the Karoo to start a transfer.
  *
- *   RequestBluetooth -> scan by service UUID -> connect -> read {lat,lng,name}
+ *   RequestBluetooth -> watch by service UUID -> connect -> read {lat,lng,name}
  *   -> Symbol.POI -> LaunchPinDrop -> (radio released on destroy)
+ *
+ * The "Get destination from phone" bonus action is only a manual retry for when
+ * the automatic path has not fired.
  *
  * Every effect used here was confirmed present in this Karoo's own firmware on
  * 2026-08-06 by searching io.hammerhead.appstore's dex — see RISKS.md.
@@ -33,6 +40,9 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
     private lateinit var karooSystem: KarooSystemService
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var inFlight: Job? = null
+    private var watcher: Job? = null
+    private var lastWaypoint: WaypointClient.Waypoint? = null
+    private var lastWaypointAt = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -51,8 +61,66 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
                 // Without this the scan below finds nothing, because the
                 // adapter is switched off underneath it.
                 karooSystem.dispatch(RequestBluetooth(extension))
+                startWatching()
             }
         }
+    }
+
+    /**
+     * The product's actual trigger: the phone advertising.
+     *
+     * The Karoo cannot be woken by the phone, so to make sending feel like a
+     * push the extension has to already be looking. It scans continuously for
+     * the whole time it is alive, so a send from the phone lands here within a
+     * second or two with nothing touched on the head unit.
+     */
+    private fun startWatching() {
+        if (watcher?.isActive == true) return
+        watcher = scope.launch {
+            Log.i(TAG, "watching for waypoints")
+            val client = WaypointClient(applicationContext)
+            while (isActive) {
+                // The claim does not stick forever. Observed 2026-08-06: the
+                // coordinator emptied its client list and switched the adapter
+                // off while this loop was running, after which every scan
+                // failed instantly and the loop simply spun. Re-assert the
+                // claim whenever the radio is down rather than busy-failing.
+                if (!client.isAdapterOn()) {
+                    Log.w(TAG, "adapter off — re-requesting bluetooth")
+                    karooSystem.dispatch(RequestBluetooth(extension))
+                    delay(RADIO_RETRY_MS)
+                    continue
+                }
+
+                // No timeout: an advertisement may be seconds or hours away.
+                val waypoint = client.fetch(timeoutMs = null)
+                if (waypoint != null && !isDuplicate(waypoint)) {
+                    navigateTo(waypoint)
+                }
+                // Breathe before rescanning. Android throttles apps that call
+                // startScan in a tight loop, and without this a peripheral that
+                // stays advertising would be re-read continuously.
+                delay(RESCAN_DELAY_MS)
+            }
+        }
+    }
+
+    /**
+     * The phone keeps advertising after a send, so the same waypoint would
+     * otherwise be picked up over and over and re-open the pin drop. Ignore an
+     * identical destination for a cooldown; re-sending the same place after
+     * that still works.
+     */
+    private fun isDuplicate(waypoint: WaypointClient.Waypoint): Boolean {
+        val now = System.currentTimeMillis()
+        val same = waypoint == lastWaypoint && now - lastWaypointAt < DUPLICATE_WINDOW_MS
+        if (same) {
+            Log.i(TAG, "ignoring repeat of $waypoint")
+        } else {
+            lastWaypoint = waypoint
+            lastWaypointAt = now
+        }
+        return same
     }
 
     override fun onBonusAction(actionId: String) {
@@ -66,10 +134,11 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             Log.i(TAG, "fetch already in progress")
             return
         }
-        inFlight = scope.launch { fetchAndNavigate() }
+        inFlight = scope.launch { fetchOnce() }
     }
 
-    private suspend fun fetchAndNavigate() {
+    /** Manual fallback for the bonus action; the normal path is startWatching(). */
+    private suspend fun fetchOnce() {
         val waypoint = WaypointClient(applicationContext).fetch()
 
         if (waypoint == null) {
@@ -79,7 +148,10 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             alert("No destination found", "Open KarooSend on your phone and keep it on screen.")
             return
         }
+        navigateTo(waypoint)
+    }
 
+    private fun navigateTo(waypoint: WaypointClient.Waypoint) {
         val poi = Symbol.POI(
             id = "karoo2send-${System.currentTimeMillis()}",
             lat = waypoint.lat,
@@ -117,6 +189,7 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
     }
 
     override fun onDestroy() {
+        watcher?.cancel()
         inFlight?.cancel()
         // Hand the radio back. Holding it for a whole ride would cost battery
         // for a feature used once or twice.
@@ -130,5 +203,8 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         private const val TAG = "KarooSend"
         private const val EXTENSION_ID = "karoo2send"
         private const val ACTION_FETCH = "fetch"
+        private const val RESCAN_DELAY_MS = 2_000L
+        private const val DUPLICATE_WINDOW_MS = 120_000L
+        private const val RADIO_RETRY_MS = 10_000L
     }
 }
