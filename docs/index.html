@@ -7,7 +7,8 @@
 <meta name="description" content="Share a place from Apple Maps and navigate to it on a Hammerhead Karoo 2. No internet, no account, no cloud.">
 <style>
 :root {
-  --accent: #2386D9;
+  --accent: #C9A400;
+  --brand: #FFE900;
   --bg: #ffffff;
   --fg: #14181d;
   --muted: #5c6672;
@@ -32,7 +33,7 @@ body {
 }
 .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 80px; }
 header { padding: 72px 0 44px; }
-.mark { width: 68px; height: 68px; border-radius: 16px; background: var(--accent);
+.mark { width: 68px; height: 68px; border-radius: 16px; background: var(--brand);
         display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
 h1 { font-size: 2.6rem; line-height: 1.12; margin: 0 0 12px; letter-spacing: -0.02em; }
 .tagline { font-size: 1.2rem; color: var(--muted); margin: 0; }
@@ -52,7 +53,7 @@ a { color: var(--accent); }
 .step { color: var(--accent); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.07em;
         text-transform: uppercase; margin-bottom: 8px; }
 .card p { font-size: 0.92rem; color: var(--muted); margin: 0 0 12px; }
-.btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none;
+.btn { display: inline-block; background: var(--brand); color: #141414; text-decoration: none;
        padding: 9px 16px; border-radius: 8px; font-size: 0.92rem; font-weight: 500; }
 .soon { display: inline-block; color: var(--muted); font-size: 0.92rem; font-style: italic; }
 .note { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-fg);
@@ -74,13 +75,12 @@ footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
 
 <header>
   <div class="mark">
-    <svg width="42" height="42" viewBox="0 0 108 108" aria-hidden="true">
-      <g transform="translate(1.8,6.3) scale(0.9)">
-        <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-              d="M46,88 C46,88 22,62 22,42 A24,24 0 1 1 70,42 C70,48 66,56 62,62"/>
-        <circle cx="46" cy="27" r="13" fill="none" stroke="#fff" stroke-width="6"/>
-        <path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-              d="M80,54 L94,68 L80,82 L80,74 C70,74 62,79 57,86 C58,70 68,62 80,62 Z"/>
+    <svg width="44" height="44" viewBox="0 0 108 108" aria-hidden="true">
+      <g transform="translate(4.6,8.0) scale(0.88)" fill="none" stroke="#141414"
+         stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M50,90 C50,90 24,64 24,42 A26,26 0 1 1 76,42"/>
+        <circle cx="50" cy="40" r="14"/>
+        <path d="M66,74 L92,74 M79,61 L79,87"/>
       </g>
     </svg>
   </div>

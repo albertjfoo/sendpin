@@ -1,15 +1,12 @@
 <!--
-  A map pin with a share arrow: send this place.
+  Pin with a plus: add this place. Matches the Figma logo.
 
-  Colours are Hammerhead's own, read out of io.hammerhead.rideapp's resources
-  rather than eyeballed — colorAccent resolves to climb_blue_500 (#2386D9),
-  with the ramp running to climb_blue_700 (#00294B).
-
-  Deliberately not their hammerhead-shark mark: that is a trademark, and this
-  app is meant to be distributable.
+  Black on Hammerhead's #FFE900, which is their own yellow — it appears in
+  io.hammerhead.rideapp's resources, so the icon sits naturally next to their
+  apps without borrowing their hammerhead-shark mark.
 
   108x108 is the adaptive-icon viewport. Launchers may mask anything outside
-  the centre 72x72, so the whole drawing is scaled and centred to sit inside it.
+  the centre 72x72, so the drawing is scaled and centred to sit inside it.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -18,35 +15,34 @@
     android:viewportHeight="108">
 
     <group
-        android:scaleX="0.9"
-        android:scaleY="0.9"
-        android:translateX="1.8"
-        android:translateY="6.3">
+        android:scaleX="0.88"
+        android:scaleY="0.88"
+        android:translateX="4.6"
+        android:translateY="8.0">
 
-        <!-- Pin outline. Open on the lower right, so the arrow reads as sitting
-             in front of it rather than colliding with it. -->
+        <!-- Pin outline, left open on the lower right so the plus sits in a gap
+             rather than colliding with the stroke. -->
         <path
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="6"
+            android:strokeColor="#141414"
+            android:strokeWidth="7"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:fillColor="#00000000"
-            android:pathData="M46,88 C46,88 22,62 22,42 A24,24 0 1 1 70,42 C70,48 66,56 62,62" />
+            android:pathData="M50,90 C50,90 24,64 24,42 A26,26 0 1 1 76,42" />
 
         <!-- The pin's eye. -->
         <path
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="6"
+            android:strokeColor="#141414"
+            android:strokeWidth="7"
             android:fillColor="#00000000"
-            android:pathData="M46,27 m-13,0 a13,13 0 1 0 26,0 a13,13 0 1 0 -26,0" />
+            android:pathData="M50,40 m-14,0 a14,14 0 1 0 28,0 a14,14 0 1 0 -28,0" />
 
-        <!-- Share arrow: curved tail sweeping up into a head. -->
+        <!-- Plus. -->
         <path
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="6"
+            android:strokeColor="#141414"
+            android:strokeWidth="7"
             android:strokeLineCap="round"
-            android:strokeLineJoin="round"
             android:fillColor="#00000000"
-            android:pathData="M80,54 L94,68 L80,82 L80,74 C70,74 62,79 57,86 C58,70 68,62 80,62 Z" />
+            android:pathData="M66,74 L92,74 M79,61 L79,87" />
     </group>
 </vector>

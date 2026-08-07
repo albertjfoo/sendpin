@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Hammerhead climb_blue_500, read from io.hammerhead.rideapp colorAccent.
-         White strokes on it stay legible on the Karoo dark UI and light Android. -->
-    <color name="ic_launcher_background">#2386D9</color>
+    <!-- Hammerhead yellow. Their own #FFE900, seen in io.hammerhead.rideapp resources.
+         Near-black strokes on it read clearly at 48px on the Karoo launcher. -->
+    <color name="ic_launcher_background">#FFE900</color>
 </resources>
