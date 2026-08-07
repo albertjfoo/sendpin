@@ -323,8 +323,8 @@ extension SendPinPeripheral: CBPeripheralManagerDelegate {
     }
 
     /// Fires when the transmit queue drains after updateValue returned false.
-    /// Without this a dropped heart rate notification would stall the stream
-    /// permanently, which looks identical to "never subscribed".
+    /// Only relevant to the notify path in send(), where a pushed destination
+    /// can be deferred; a plain read is unaffected.
     func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
         append(.info, "transmit queue ready")
     }
