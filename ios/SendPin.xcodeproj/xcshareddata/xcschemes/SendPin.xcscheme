@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "4B02000000000000000000A4"
-               BuildableName = "KarooSend.app"
-               BlueprintName = "KarooSend"
-               ReferencedContainer = "container:KarooSend.xcodeproj">
+               BuildableName = "SendPin.app"
+               BlueprintName = "SendPin"
+               ReferencedContainer = "container:SendPin.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4B02000000000000000000A4"
-            BuildableName = "KarooSend.app"
-            BlueprintName = "KarooSend"
-            ReferencedContainer = "container:KarooSend.xcodeproj">
+            BuildableName = "SendPin.app"
+            BlueprintName = "SendPin"
+            ReferencedContainer = "container:SendPin.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "4B02000000000000000000A4"
-            BuildableName = "KarooSend.app"
-            BlueprintName = "KarooSend"
-            ReferencedContainer = "container:KarooSend.xcodeproj">
+            BuildableName = "SendPin.app"
+            BlueprintName = "SendPin"
+            ReferencedContainer = "container:SendPin.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

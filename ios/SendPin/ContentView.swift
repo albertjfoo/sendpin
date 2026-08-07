@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  karoo2-send
+//  sendpin
 //
 //  What someone sees after sharing a place from Maps. The job of this screen
 //  is to answer one question — has the Karoo got it yet? — and otherwise stay
@@ -11,7 +11,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @Bindable var peripheral: KarooSendPeripheral
+    @Bindable var peripheral: SendPinPeripheral
     @State private var showingSetup = false
     @State private var showingDetails = false
 
@@ -22,7 +22,7 @@ struct ContentView: View {
                 destinationSection
                 helpSection
             }
-            .navigationTitle("KarooSend")
+            .navigationTitle("SendPin")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Setup") { showingSetup = true }
@@ -158,7 +158,7 @@ struct ContentView: View {
                 Label("Setup instructions", systemImage: "questionmark.circle")
             }
         } footer: {
-            Text("Share a place from Maps and choose the KarooSend shortcut. This app opens, sends the destination, and stops by itself.")
+            Text("Share a place from Maps and choose the SendPin shortcut. This app opens, sends the destination, and stops by itself.")
         }
     }
 }
@@ -168,7 +168,7 @@ struct ContentView: View {
 /// The old debug console, kept but moved out of the way. Still the fastest way
 /// to answer "why didn't that work" when someone reports a problem.
 struct DetailsView: View {
-    @Bindable var peripheral: KarooSendPeripheral
+    @Bindable var peripheral: SendPinPeripheral
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {

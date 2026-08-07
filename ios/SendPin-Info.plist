@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Deliberately kept outside KarooSend/ so the file-system-synchronized group
+  Deliberately kept outside SendPin/ so the file-system-synchronized group
   never sweeps it into the Copy Bundle Resources phase, which would collide
   with the processed Info.plist at build time.
 -->
@@ -27,20 +27,20 @@
 	<!-- Without this key iOS 13+ refuses Bluetooth outright and
 	     CBPeripheralManager reports .unauthorized with no other clue. -->
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>KarooSend advertises your destination over Bluetooth so your Karoo 2 can pick it up and start navigating.</string>
+	<string>SendPin advertises your destination over Bluetooth so your Karoo 2 can pick it up and start navigating.</string>
 
 	<!-- The Shortcut that receives a share from Maps opens
-	     karoosend://send?lat=…&amp;lng=…&amp;name=… -->
+	     sendpin://send?lat=…&amp;lng=…&amp;name=… -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.albert.karoosend.url</string>
+			<string>com.albert.sendpin.url</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>karoosend</string>
+				<string>sendpin</string>
 			</array>
 		</dict>
 	</array>

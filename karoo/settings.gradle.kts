@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "karoo2send"
+rootProject.name = "sendpin"
 include(":app")

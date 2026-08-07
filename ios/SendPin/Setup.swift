@@ -1,6 +1,6 @@
 //
 //  Setup.swift
-//  karoo2-send
+//  sendpin
 //
 //  Onboarding, and the handful of URLs it points at.
 //

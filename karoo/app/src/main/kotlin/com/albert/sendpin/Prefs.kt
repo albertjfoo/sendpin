@@ -1,4 +1,4 @@
-package com.albert.karoosend
+package com.albert.sendpin
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -11,7 +11,7 @@ import android.content.SharedPreferences
  * preferences survive both, so state is written here rather than held in memory.
  */
 object Prefs {
-    private const val FILE = "karoosend"
+    private const val FILE = "sendpin"
 
     private const val KEY_ENABLED = "enabled"
     private const val KEY_STATUS = "status"

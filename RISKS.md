@@ -1,4 +1,4 @@
-# karoo2-send — risk register
+# sendpin — risk register
 
 Last updated 2026-08-06. Built on the NUC de-risk session and a review of the
 karoo-ext source. Supersedes all earlier risk notes.
@@ -53,7 +53,7 @@ to trick the radio into staying on, and it carried two nasty problems of its own
 | C1 | Extension cannot trigger native turn-by-turn | **Closed twice over.** Empirically: sideloaded WaypointsKaroo v0.93 launched real native nav on the Karoo 2. Officially: `LaunchPinDrop` is a supported karoo-ext effect, so no undocumented intent is needed. |
 | C2 | Karoo 2 cannot see BLE peripherals at all | Closed. nRF Connect on the Karoo listed many nearby devices — whenever the radio was on. |
 | C3 | Unexplained discovery failure against the iPhone | Closed, root-caused. LightBlue advertises only a local name and never the `180D` service UUID; Karoo filters scans by service UUID. Confirmed by scanning the phone from a Linux box: `Name: Heart Rate` with no `UUIDs:` field, while another device in the same scan did report one. Not a Karoo defect. |
-| C4 | The Karoo cannot discover and connect to the iPhone | **Closed empirically 2026-08-06.** The KarooSend app advertised `180D` in the advertisement packet; the Karoo listed it under Add Sensor, connected, and bonded. The failure C3 diagnosed on paper is fixed in practice. |
+| C4 | The Karoo cannot discover and connect to the iPhone | **Closed empirically 2026-08-06.** The SendPin app advertised `180D` in the advertisement packet; the Karoo listed it under Add Sensor, connected, and bonded. The failure C3 diagnosed on paper is fixed in practice. |
 | C5 | R1 + R2 — firmware too old for `LaunchPinDrop`; `RequestBluetooth` unverified | **Closed 2026-08-06 by inspecting the device itself.** See below. |
 
 ---
@@ -160,8 +160,8 @@ have not seen an extension actually hold the radio with it. Unknowns: whether it
 on Karoo 2 firmware, how long the claim persists, whether it survives backgrounding,
 and whether it works outside a ride.
 
-**Action:** first Kotlin milestone — dispatch `RequestBluetooth("karoo2send")` and watch
-for `BluetoothCoordinator: request ble karoo2send` via
+**Action:** first Kotlin milestone — dispatch `RequestBluetooth("sendpin")` and watch
+for `BluetoothCoordinator: request ble sendpin` via
 `adb logcat | grep -i "BluetoothCoordinator\|SensorPairing"`. Confirm the radio stays on.
 Pair with `ReleaseBluetooth` so you are not holding the radio (and draining battery)
 for an entire ride.

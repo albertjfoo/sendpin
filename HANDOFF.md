@@ -1,4 +1,4 @@
-# karoo2-send — handoff to the MacBook
+# sendpin — handoff to the MacBook
 
 Self-contained context for continuing on the Mac. Written 2026-08-05 after the
 NUC de-risk session; updated 2026-08-06 on the Mac.
@@ -120,8 +120,8 @@ and implemented on the iOS side. Write the Kotlin against that document.
 The working copy moved off the USB stick on 2026-08-06:
 
 ```
-~/Developer/karoo2-send        ← build here (APFS, git repo)
-/Volumes/USB Drive/karoo2-send ← archive + vendor-apks/ only
+~/Developer/sendpin        ← build here (APFS, git repo)
+/Volumes/USB Drive/sendpin ← archive + vendor-apks/ only
 ```
 
 **Do not build on the USB drive.** It is exFAT: no POSIX permissions, no extended
@@ -129,14 +129,14 @@ attributes. Code signing and DerivedData both misbehave there. `vendor-apks/` st
 on the stick; it is Karoo-only.
 
 ```
-ios/KarooSend.xcodeproj        hand-written, file-system-synchronized groups
-ios/KarooSend-Info.plist       outside the sync group on purpose — inside, it would
+ios/SendPin.xcodeproj        hand-written, file-system-synchronized groups
+ios/SendPin-Info.plist       outside the sync group on purpose — inside, it would
                                be swept into Copy Bundle Resources and collide
-ios/KarooSend/
-  KarooSendApp.swift           @main, karoosend:// intake, keeps the screen awake
+ios/SendPin/
+  SendPinApp.swift           @main, sendpin:// intake, keeps the screen awake
   ContentView.swift            send status, destination, details sheet
   Setup.swift                  first-run onboarding and outbound links
-  KarooSendPeripheral.swift    the BLE peripheral
+  SendPinPeripheral.swift    the BLE peripheral
   Waypoint.swift               the payload + URL parsing
 PROTOCOL.md                    the iPhone ↔ Karoo wire contract
 ```
@@ -144,10 +144,10 @@ PROTOCOL.md                    the iPhone ↔ Karoo wire contract
 Build from the command line without touching `xcode-select`:
 
 ```
-cd ~/Developer/karoo2-send/ios
+cd ~/Developer/sendpin/ios
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build \
-  -scheme KarooSend -sdk iphonesimulator \
+  -scheme SendPin -sdk iphonesimulator \
   -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO
 ```
 
@@ -172,10 +172,10 @@ pin-drop screen by itself, with nothing touched on the head unit.
 | iOS app builds, installs, advertises | ✅ |
 | Karoo discovers + connects to the iPhone | ✅ |
 | Waypoint JSON transferred over GATT | ✅ ~1.9s, MTU 185, single read |
-| `RequestBluetooth` holds the radio | ✅ `request ble karoo2send` in the coordinator log |
+| `RequestBluetooth` holds the radio | ✅ `request ble sendpin` in the coordinator log |
 | `LaunchPinDrop` opens native navigation | ✅ confirmed on screen |
 | Duplicate suppression | ✅ re-reads are ignored for 2 min |
-| Apple Maps → Shortcut → `karoosend://` | ✅ verified with Apple's own share URL |
+| Apple Maps → Shortcut → `sendpin://` | ✅ verified with Apple's own share URL |
 | Real turn-by-turn navigation | ✅ outdoors, once the Karoo has a GPS fix |
 | Extension screen + off switch on the Karoo | ✅ in the app list |
 | Google Maps sharing | ⏸️ tabled — see PROTOCOL.md |
@@ -193,7 +193,7 @@ Known limits, none of them unknowns:
 - Battery is unmeasured. Scanning is `SCAN_MODE_LOW_POWER` (~10% duty) and the
   extension holds the radio on via `RequestBluetooth`, overriding the
   coordinator's habit of powering Bluetooth down. Measure with:
-  `adb shell dumpsys batterystats --charged com.albert.karoosend`
+  `adb shell dumpsys batterystats --charged com.albert.sendpin`
 
 ## ⛔ Blocker: Xcode is too old for the phone
 
@@ -219,7 +219,7 @@ sensor. That single observable proves BLE discovery end-to-end using Hammerhead'
 UI as the test harness — no extension, no coordinator fight, no sideloading.
 
 The app ships this as the **HR test harness** mode (the default). Run it, tap Start,
-then on the Karoo: Settings → Sensors → Add Sensor → Heart Rate. Look for `KarooSend`.
+then on the Karoo: Settings → Sensors → Add Sensor → Heart Rate. Look for `SendPin`.
 
 Watch the **on-screen log**, not the Xcode console — you will be standing over the
 bike with the phone in your hand. `SUBSCRIBED to 2A37` is the win condition.
@@ -238,8 +238,8 @@ mode. The shipping app advertises the custom waypoint service alone.
    after **7 days** and must be re-signed. The paid Developer Program ($99/yr) gives
    a year. Free is fine to start; the expiry gets annoying during iteration.
    Set the Signing team in Xcode: sign in under Settings → Accounts, then pick your
-   personal team on the KarooSend target. `PRODUCT_BUNDLE_IDENTIFIER` is
-   `com.albert.karoosend` — change it if it collides.
+   personal team on the SendPin target. `PRODUCT_BUNDLE_IDENTIFIER` is
+   `com.albert.sendpin` — change it if it collides.
 4. **adb on the Mac** (optional): `brew install android-platform-tools`, if you want
    Karoo logs from the same machine instead of hopping back to the NUC. Milestone 1
    doesn't need it — you just look at the Karoo's screen.
@@ -248,23 +248,23 @@ mode. The shipping app advertises the custom waypoint service alone.
 
 ```
 # iOS  (Xcode 26.6, iOS 26.5 SDK, team JJ9P8ZLMH3 already in the project)
-cd ~/Developer/karoo2-send/ios
+cd ~/Developer/sendpin/ios
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild build \
-  -scheme KarooSend -destination 'id=<your-iphone-udid>' \
+  -scheme SendPin -destination 'id=<your-iphone-udid>' \
   -allowProvisioningUpdates -derivedDataPath ./build
 xcrun devicectl device install app --device <your-iphone-udid> \
-  build/Build/Products/Debug-iphoneos/KarooSend.app
+  build/Build/Products/Debug-iphoneos/SendPin.app
 
 # Karoo
-cd ~/Developer/karoo2-send/karoo
+cd ~/Developer/sendpin/karoo
 JAVA_HOME=/opt/homebrew/opt/openjdk@17 \
 ANDROID_HOME=/opt/homebrew/share/android-commandlinetools \
 ./gradlew :app:assembleDebug --no-daemon
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 # REQUIRED after every install — API 27 returns no scan results without it,
 # and the app has no UI to request it:
-adb shell pm grant com.albert.karoosend android.permission.ACCESS_FINE_LOCATION
+adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
 ```
 
 `karoo-ext` comes from **JitPack**, not GitHub Packages — the latter demands a
@@ -273,9 +273,9 @@ token even for public packages (401 vs 200, checked 2026-08-06).
 ## Debugging
 
 ```
-adb logcat -s KarooSend:V                                    # the extension's own log
+adb logcat -s SendPin:V                                    # the extension's own log
 adb logcat -d | grep -iE "BluetoothCoordinator|request ble"  # radio claims
-adb shell dumpsys activity services com.albert.karoosend     # is it bound?
+adb shell dumpsys activity services com.albert.sendpin     # is it bound?
 ```
 
 The iPhone app keeps its own on-screen log — use that rather than the Xcode
@@ -294,7 +294,7 @@ console, since testing means standing over the bike with the phone in hand.
 
 This conversation and the agent's memory files **do not transfer between machines** —
 memory is machine-local and keyed to a directory path. These documents are the
-replacement: point a new session at `~/Developer/karoo2-send`.
+replacement: point a new session at `~/Developer/sendpin`.
 
 The two memory files this was originally built from live on the NUC at:
 `~/.claude/projects/-home-albert-foo-iphone-photos/memory/`
@@ -305,7 +305,7 @@ The stick is now an archive, not the working copy. To refresh the docs on it:
 
 ```
 rsync -a --delete --exclude vendor-apks --exclude .git \
-  ~/Developer/karoo2-send/ "/Volumes/USB Drive/karoo2-send/"
+  ~/Developer/sendpin/ "/Volumes/USB Drive/sendpin/"
 ```
 
 For a real backup, prefer `git init` plus a private GitHub repo over the stick

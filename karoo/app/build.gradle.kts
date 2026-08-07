@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.albert.karoosend"
+    namespace = "com.albert.sendpin"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.albert.karoosend"
+        applicationId = "com.albert.sendpin"
         // The Karoo 2 runs Android 8.1.0 / API 27. Verified on the unit
         // 2026-08-06 via `getprop ro.build.version.sdk`. Do not raise this.
         minSdk = 27

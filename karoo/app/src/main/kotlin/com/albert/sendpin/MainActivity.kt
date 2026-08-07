@@ -1,4 +1,4 @@
-package com.albert.karoosend
+package com.albert.sendpin
 
 import android.app.Activity
 import android.content.pm.PackageManager
