@@ -1,6 +1,7 @@
 package com.albert.karoosend
 
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -27,6 +28,8 @@ import android.widget.TextView
 class MainActivity : Activity() {
 
     private val refresh = Handler(Looper.getMainLooper())
+
+    private companion object { const val REQUEST_LOCATION = 1 }
     private lateinit var statusLine: TextView
     private lateinit var lastLine: TextView
 
@@ -109,7 +112,15 @@ class MainActivity : Activity() {
     }
 
     private fun render() {
-        statusLine.text = getString(R.string.status_prefix, Prefs.status(this))
+        // A denied permission outranks whatever the watcher thinks it is doing:
+        // it will report "listening" while scanning into the void.
+        if (!hasLocationPermission()) {
+            statusLine.text = getString(R.string.needs_location)
+            statusLine.setTextColor(Color.RED)
+        } else {
+            statusLine.text = getString(R.string.status_prefix, Prefs.status(this))
+            statusLine.setTextColor(Color.LTGRAY)
+        }
         val last = Prefs.lastDestination(this)
         lastLine.text = if (last == null) {
             getString(R.string.no_destination_yet)
@@ -119,8 +130,42 @@ class MainActivity : Activity() {
         }
     }
 
+    /**
+     * Ask for location, without which the extension is silently useless.
+     *
+     * Android 8.1 returns *no* BLE scan results without ACCESS_FINE_LOCATION —
+     * no error, no exception, just an empty scan forever. During development it
+     * was granted by hand over adb, which is fine for one device and impossible
+     * for anyone installing this through the Companion app. This screen is the
+     * only UI the app has, so it is the only place the request can happen.
+     */
+    private fun ensureLocationPermission() {
+        if (checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                REQUEST_LOCATION,
+            )
+        }
+    }
+
+    private fun hasLocationPermission(): Boolean =
+        checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) ==
+            PackageManager.PERMISSION_GRANTED
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        render()
+    }
+
     override fun onResume() {
         super.onResume()
+        ensureLocationPermission()
         refresh.post(tick)
     }
 
