@@ -146,8 +146,14 @@ class WaypointClient(private val context: Context) {
         val filter = ScanFilter.Builder()
             .setServiceUuid(ParcelUuid(WAYPOINT_SERVICE))
             .build()
+        // LOW_POWER duty-cycles the radio at roughly 10%, against LOW_LATENCY's
+        // continuous scanning. This scan runs for as long as the Karoo is
+        // switched on, so duty cycle is the dominant battery cost of the whole
+        // extension — and the ~3-5s it adds before a phone is spotted costs
+        // nothing real, because the phone keeps advertising until the waypoint
+        // is actually read. There is no race to win here.
         val settings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER)
             .build()
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
