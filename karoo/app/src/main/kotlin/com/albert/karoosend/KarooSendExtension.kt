@@ -97,6 +97,21 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             var scan: ScanCallback? = null
             try {
                 while (isActive) {
+                    // The user's off switch. Checked every pass rather than
+                    // observed, so it also takes effect after a process restart
+                    // without the settings screen having to be open.
+                    if (!Prefs.isEnabled(applicationContext)) {
+                        if (scan != null) {
+                            Log.i(TAG, "disabled — stopping scan and releasing bluetooth")
+                            client.stopScan(scan!!)
+                            scan = null
+                            karooSystem.dispatch(ReleaseBluetooth(extension))
+                        }
+                        Prefs.setStatus(applicationContext, "off")
+                        delay(DISABLED_POLL_MS)
+                        continue
+                    }
+
                     // The claim does not stick forever. Observed 2026-08-06: the
                     // coordinator emptied its client list and switched the adapter
                     // off mid-run. Re-assert rather than busy-fail, and drop the
@@ -113,9 +128,11 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
                     if (scan == null) {
                         scan = client.startPersistentScan { sightings.trySend(it) }
                         if (scan == null) {
+                            Prefs.setStatus(applicationContext, "waiting for Bluetooth")
                             delay(RADIO_RETRY_MS)
                             continue
                         }
+                        Prefs.setStatus(applicationContext, "listening")
                     }
 
                     // Wake periodically even with nothing in sight, so a radio
@@ -202,6 +219,10 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
             name = waypoint.name,
         )
         Log.i(TAG, "dispatching LaunchPinDrop for $poi")
+        Prefs.setLastDestination(
+            applicationContext,
+            waypoint.name ?: "${waypoint.lat}, ${waypoint.lng}",
+        )
         karooSystem.dispatch(LaunchPinDrop(poi))
 
         // Audible confirmation so the destination can be sent without staring
@@ -248,6 +269,7 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         private const val ACTION_FETCH = "fetch"
         private const val RESCAN_DELAY_MS = 2_000L
         private const val SETTLED_DELAY_MS = 20_000L
+        private const val DISABLED_POLL_MS = 5_000L
         private const val DUPLICATE_WINDOW_MS = 120_000L
         private const val RADIO_RETRY_MS = 10_000L
         private const val ADAPTER_RECHECK_MS = 15_000L

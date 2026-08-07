@@ -26,6 +26,22 @@
         android:label="@string/extension_name">
 
         <!--
+          Gives the extension a face. Without a launcher activity it is entirely
+          invisible on the head unit: bound at boot, running, with no way to see
+          its state or stop it. This is what makes it appear in the Karoo's app
+          list alongside sideloaded apps like WaypointsKaroo.
+        -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/extension_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
           Bound by the Karoo system (io.hammerhead.appstore) via this action.
           Action name and meta-data key are from karoo-ext Constants.kt:
             KAROO_EXTENSION_INTENT_FILTER = io.hammerhead.karooext.KAROO_EXTENSION
