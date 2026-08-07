@@ -2,9 +2,9 @@
 //  ContentView.swift
 //  karoo2-send
 //
-//  The log on this screen is not a nicety. Testing means standing over the
-//  Karoo with the iPhone in hand, well away from the Xcode console, so
-//  everything worth knowing has to be visible on the phone itself.
+//  What someone sees after sharing a place from Maps. The job of this screen
+//  is to answer one question — has the Karoo got it yet? — and otherwise stay
+//  out of the way.
 //
 
 import SwiftUI
@@ -12,150 +12,214 @@ import SwiftUI
 struct ContentView: View {
 
     @Bindable var peripheral: KarooSendPeripheral
-
-    @State private var latText = ""
-    @State private var lngText = ""
-    @State private var nameText = ""
+    @State private var showingSetup = false
+    @State private var showingDetails = false
 
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 statusSection
-                modeSection
-                if peripheral.mode == .waypoint {
-                    destinationSection
-                }
-                logSection
+                destinationSection
+                helpSection
             }
             .navigationTitle("KarooSend")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(peripheral.isAdvertising ? "Stop" : "Start") {
-                        peripheral.isAdvertising ? peripheral.stop() : peripheral.start()
-                    }
-                    .disabled(!peripheral.canAdvertise)
-                    .fontWeight(.semibold)
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Setup") { showingSetup = true }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if peripheral.isAdvertising {
+                        Button("Stop") { peripheral.stop() }
+                    }
+                }
+            }
+            .sheet(isPresented: $showingSetup) {
+                SetupView { showingSetup = false }
+            }
+            .sheet(isPresented: $showingDetails) {
+                DetailsView(peripheral: peripheral)
+            }
+        }
+        .onAppear {
+            if !SetupState.hasSeenSetup {
+                showingSetup = true
+                SetupState.hasSeenSetup = true
             }
         }
     }
 
-    // MARK: - Sections
+    // MARK: - Status
 
     private var statusSection: some View {
         Section {
-            LabeledContent("Status") {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(peripheral.isAdvertising ? .green : .secondary)
-                        .frame(width: 8, height: 8)
-                    Text(peripheral.statusText)
+            HStack(spacing: 14) {
+                Image(systemName: state.icon)
+                    .font(.title2)
+                    .foregroundStyle(state.tint)
+                    .frame(width: 32)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(state.title).font(.headline)
+                    Text(state.detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
-            if peripheral.isAdvertising {
-                LabeledContent("Subscribers", value: "\(peripheral.subscriberCount)")
-                LabeledContent("Waypoint reads", value: "\(peripheral.readCount)")
+            .padding(.vertical, 6)
+        }
+    }
+
+    /// One of four things is true, and the screen should say which without the
+    /// reader having to interpret a log.
+    private enum ScreenState {
+        case delivered, sending, idle, unavailable(String)
+
+        var icon: String {
+            switch self {
+            case .delivered: "checkmark.circle.fill"
+            case .sending: "dot.radiowaves.left.and.right"
+            case .idle: "location.slash"
+            case .unavailable: "exclamationmark.triangle.fill"
             }
-        } footer: {
-            if peripheral.managerState == .unsupported {
-                Text("CoreBluetooth is unavailable. This app has to run on a physical iPhone — the Simulator cannot advertise.")
-            } else if peripheral.managerState == .unauthorized {
-                Text("Grant Bluetooth access in Settings → KarooSend.")
-            } else {
-                Text("Keep this screen open while sending. iOS hides the service UUID from non-Apple devices as soon as the app backgrounds.")
+        }
+
+        var tint: Color {
+            switch self {
+            case .delivered: .green
+            case .sending: .accentColor
+            case .idle: .secondary
+            case .unavailable: .orange
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .delivered: "Sent to Karoo"
+            case .sending: "Sending…"
+            case .idle: "Nothing to send"
+            case .unavailable: "Bluetooth unavailable"
+            }
+        }
+
+        var detail: String {
+            switch self {
+            case .delivered: "Your Karoo has the destination. Check its screen."
+            case .sending: "Keep this screen open until the Karoo picks it up."
+            case .idle: "Share a place from Maps to send it here."
+            case .unavailable(let why): why
             }
         }
     }
 
-    private var modeSection: some View {
-        Section {
-            Picker("Mode", selection: $peripheral.mode) {
-                ForEach(AdvertisingMode.allCases) { mode in
-                    Text(mode.label).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-        } footer: {
-            Text(peripheral.mode.explanation)
+    private var state: ScreenState {
+        guard peripheral.canAdvertise else {
+            return .unavailable(peripheral.statusText)
         }
+        if peripheral.isAdvertising { return .sending }
+        // Stopped advertising *after* a read means the Karoo took it, which is
+        // the peripheral's own auto-stop rather than the user pressing Stop.
+        if peripheral.readCount > 0 { return .delivered }
+        return .idle
     }
 
+    // MARK: - Destination
+
+    @ViewBuilder
     private var destinationSection: some View {
-        Section("Destination") {
-            LabeledContent("Current", value: peripheral.waypoint.summary)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+        if peripheral.waypoint != .none {
+            Section("Destination") {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(peripheral.waypoint.name)
+                        .font(.body.weight(.medium))
+                    Text(peripheral.waypoint.summary)
+                        .font(.footnote.monospaced())
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 2)
 
-            TextField("Latitude", text: $latText)
-                .keyboardType(.numbersAndPunctuation)
-            TextField("Longitude", text: $lngText)
-                .keyboardType(.numbersAndPunctuation)
-            TextField("Name", text: $nameText)
-
-            Button("Set destination", action: applyManualDestination)
-                .disabled(manualWaypoint == nil)
+                if !peripheral.isAdvertising {
+                    Button("Send again") { peripheral.send(peripheral.waypoint) }
+                }
+            }
         }
     }
 
-    private var logSection: some View {
+    // MARK: - Help
+
+    private var helpSection: some View {
         Section {
-            if peripheral.log.isEmpty {
-                Text("No events yet.")
-                    .foregroundStyle(.secondary)
-            } else {
-                // Newest first: the interesting line is always the last thing
-                // that happened, and scrolling a Form to the bottom mid-test is
-                // exactly the fiddling this screen exists to avoid.
-                ForEach(peripheral.log.reversed()) { entry in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(entry.date, format: .dateTime.hour().minute().second())
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                        Text(entry.text)
-                            .font(.caption)
-                            .foregroundStyle(color(for: entry.level))
+            Button {
+                showingDetails = true
+            } label: {
+                Label("Connection details", systemImage: "list.bullet.rectangle")
+            }
+            Button {
+                showingSetup = true
+            } label: {
+                Label("Setup instructions", systemImage: "questionmark.circle")
+            }
+        } footer: {
+            Text("Share a place from Maps and choose the KarooSend shortcut. This app opens, sends the destination, and stops by itself.")
+        }
+    }
+}
+
+// MARK: - Details
+
+/// The old debug console, kept but moved out of the way. Still the fastest way
+/// to answer "why didn't that work" when someone reports a problem.
+struct DetailsView: View {
+    @Bindable var peripheral: KarooSendPeripheral
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    LabeledContent("Bluetooth", value: peripheral.statusText)
+                    LabeledContent("Advertising", value: peripheral.isAdvertising ? "Yes" : "No")
+                    LabeledContent("Reads by Karoo", value: "\(peripheral.readCount)")
+                }
+
+                Section("Log") {
+                    if peripheral.log.isEmpty {
+                        Text("Nothing yet.").foregroundStyle(.secondary)
+                    }
+                    // Newest first: the interesting line is the one that just
+                    // happened, and scrolling to the bottom mid-test is awkward
+                    // when you are standing over the bike.
+                    ForEach(peripheral.log.reversed()) { entry in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(entry.text)
+                                .font(.footnote)
+                                .foregroundStyle(entry.level.tint)
+                            Text(entry.date, style: .time)
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                        }
                     }
                 }
             }
-        } header: {
-            HStack {
-                Text("Log")
-                Spacer()
-                Button("Clear", action: peripheral.clearLog)
-                    .font(.caption)
-                    .textCase(nil)
+            .navigationTitle("Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Clear", action: peripheral.clearLog)
+                }
             }
         }
     }
+}
 
-    // MARK: - Helpers
-
-    /// nil until every field parses, which is also what disables the button.
-    private var manualWaypoint: Waypoint? {
-        guard let lat = Double(latText.trimmingCharacters(in: .whitespaces)),
-              let lng = Double(lngText.trimmingCharacters(in: .whitespaces)),
-              (-90...90).contains(lat), (-180...180).contains(lng)
-        else { return nil }
-
-        let trimmed = nameText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return Waypoint(lat: lat, lng: lng, name: trimmed.isEmpty ? "Destination" : trimmed)
-    }
-
-    private func applyManualDestination() {
-        guard let waypoint = manualWaypoint else { return }
-        peripheral.send(waypoint)
-    }
-
-    private func color(for level: PeripheralLogEntry.Level) -> Color {
-        switch level {
+private extension PeripheralLogEntry.Level {
+    var tint: Color {
+        switch self {
         case .info: .primary
         case .success: .green
         case .warning: .orange
         case .failure: .red
         }
     }
-}
-
-#Preview {
-    ContentView(peripheral: KarooSendPeripheral())
 }

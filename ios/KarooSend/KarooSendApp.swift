@@ -29,7 +29,6 @@ struct KarooSendApp: App {
                         peripheral.reportBadURL(url)
                         return
                     }
-                    peripheral.mode = .waypoint
                     peripheral.send(waypoint)
                 }
         }
