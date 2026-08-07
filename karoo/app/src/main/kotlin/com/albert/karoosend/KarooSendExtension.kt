@@ -1,5 +1,7 @@
 package com.albert.karoosend
 
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.le.ScanCallback
 import android.util.Log
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.extension.KarooExtension
@@ -14,9 +16,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Receives a destination from the iPhone over BLE and hands it to the Karoo's
@@ -79,28 +83,48 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         watcher = scope.launch {
             Log.i(TAG, "watching for waypoints")
             val client = WaypointClient(applicationContext)
-            while (isActive) {
-                // The claim does not stick forever. Observed 2026-08-06: the
-                // coordinator emptied its client list and switched the adapter
-                // off while this loop was running, after which every scan
-                // failed instantly and the loop simply spun. Re-assert the
-                // claim whenever the radio is down rather than busy-failing.
-                if (!client.isAdapterOn()) {
-                    Log.w(TAG, "adapter off — re-requesting bluetooth")
-                    karooSystem.dispatch(RequestBluetooth(extension))
-                    delay(RADIO_RETRY_MS)
-                    continue
-                }
+            // CONFLATED: the phone advertises many times a second while its
+            // screen is on. Only the most recent sighting is worth acting on.
+            val sightings = Channel<BluetoothDevice>(Channel.CONFLATED)
+            var scan: ScanCallback? = null
+            try {
+                while (isActive) {
+                    // The claim does not stick forever. Observed 2026-08-06: the
+                    // coordinator emptied its client list and switched the adapter
+                    // off mid-run. Re-assert rather than busy-fail, and drop the
+                    // scan first so it is restarted cleanly against a live radio.
+                    if (!client.isAdapterOn()) {
+                        Log.w(TAG, "adapter off — re-requesting bluetooth")
+                        scan?.let { client.stopScan(it) }
+                        scan = null
+                        karooSystem.dispatch(RequestBluetooth(extension))
+                        delay(RADIO_RETRY_MS)
+                        continue
+                    }
 
-                // No timeout: an advertisement may be seconds or hours away.
-                val waypoint = client.fetch(timeoutMs = null)
-                if (waypoint != null && !isDuplicate(waypoint)) {
-                    navigateTo(waypoint)
+                    if (scan == null) {
+                        scan = client.startPersistentScan { sightings.trySend(it) }
+                        if (scan == null) {
+                            delay(RADIO_RETRY_MS)
+                            continue
+                        }
+                    }
+
+                    // Wake periodically even with nothing in sight, so a radio
+                    // that died underneath us is noticed by the check above.
+                    val device = withTimeoutOrNull(ADAPTER_RECHECK_MS) { sightings.receive() }
+                        ?: continue
+
+                    val waypoint = client.read(device)
+                    if (waypoint != null && !isDuplicate(waypoint)) {
+                        navigateTo(waypoint)
+                    }
+                    // Settle before acting on the next sighting. The scan itself
+                    // keeps running throughout — it is never restarted here.
+                    delay(RESCAN_DELAY_MS)
                 }
-                // Breathe before rescanning. Android throttles apps that call
-                // startScan in a tight loop, and without this a peripheral that
-                // stays advertising would be re-read continuously.
-                delay(RESCAN_DELAY_MS)
+            } finally {
+                scan?.let { client.stopScan(it) }
             }
         }
     }
@@ -206,5 +230,6 @@ class KarooSendExtension : KarooExtension(EXTENSION_ID, "0.1") {
         private const val RESCAN_DELAY_MS = 2_000L
         private const val DUPLICATE_WINDOW_MS = 120_000L
         private const val RADIO_RETRY_MS = 10_000L
+        private const val ADAPTER_RECHECK_MS = 15_000L
     }
 }

@@ -131,6 +131,51 @@ class WaypointClient(private val context: Context) {
         }
     }
 
+    /**
+     * Start a scan and leave it running. Returns the callback needed to stop it.
+     *
+     * Long-lived on purpose. Android silently blocks an app that calls startScan
+     * more than 5 times in 30 seconds, and repeated start/stop churn corrupted
+     * this app's scanner registration outright — the stack began logging
+     * "BtGatt.ContextMap: Context not found" and the extension went deaf while
+     * still looking perfectly healthy. Observed 2026-08-06. Start once, keep it.
+     */
+    @SuppressLint("MissingPermission")
+    fun startPersistentScan(onMatch: (android.bluetooth.BluetoothDevice) -> Unit): ScanCallback? {
+        val scanner = adapter?.bluetoothLeScanner ?: return null
+        val filter = ScanFilter.Builder()
+            .setServiceUuid(ParcelUuid(WAYPOINT_SERVICE))
+            .build()
+        val settings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+            .build()
+        val callback = object : ScanCallback() {
+            override fun onScanResult(callbackType: Int, result: ScanResult) {
+                onMatch(result.device)
+            }
+
+            override fun onScanFailed(errorCode: Int) {
+                Log.e(TAG, "scan failed: $errorCode")
+            }
+        }
+        return try {
+            scanner.startScan(listOf(filter), settings, callback)
+            Log.i(TAG, "persistent scan started")
+            callback
+        } catch (e: Exception) {
+            Log.e(TAG, "could not start scan", e)
+            null
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun stopScan(callback: ScanCallback) {
+        runCatching { adapter?.bluetoothLeScanner?.stopScan(callback) }
+    }
+
+    @SuppressLint("MissingPermission")
+    suspend fun read(device: android.bluetooth.BluetoothDevice): Waypoint? = readWaypoint(device)
+
     @SuppressLint("MissingPermission")
     private suspend fun readWaypoint(device: android.bluetooth.BluetoothDevice): Waypoint? {
         val result = CompletableDeferred<ByteArray?>()
