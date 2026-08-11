@@ -66,6 +66,11 @@ pre.sh { background: var(--card); border: 1px solid var(--line); border-radius: 
          font: 13px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; }
 ol, ul { padding-left: 22px; }
 li { margin-bottom: 7px; }
+.sym { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+       padding: 16px 20px; margin-bottom: 12px; }
+.sym h3 { margin: 0 0 6px; font-size: 0.98rem; }
+.sym p { margin: 0 0 8px; font-size: 0.94rem; color: var(--muted); }
+.sym p:last-child { margin-bottom: 0; }
 footer { border-top: 1px solid var(--line); margin-top: 64px; padding-top: 24px;
          color: var(--muted); font-size: 0.87rem; }
 </style>
@@ -158,6 +163,58 @@ while finding nothing. Granting it on the device when the app asks works just as
   <li><strong>The Karoo needs a GPS fix</strong> and the relevant offline map region.
       Indoors you get the pin and a “GPS required”.</li>
 </ul>
+
+
+<h2>Troubleshooting</h2>
+
+<div class="sym">
+  <h3>&ldquo;Send to Karoo&rdquo; isn&rsquo;t in the share sheet</h3>
+  <p>The Shortcut either isn&rsquo;t installed, or isn&rsquo;t enabled for sharing. Scroll to the
+  bottom of the share sheet, tap <strong>Edit Actions&hellip;</strong>, and switch it on.</p>
+</div>
+
+<div class="sym">
+  <h3>The phone says it sent, but nothing happens on the Karoo</h3>
+  <p>Open <strong>SendPin</strong> on the Karoo. The status line tells you which of three
+  things is wrong:</p>
+  <p><strong>&ldquo;Location permission is required&rdquo;</strong> &mdash; tap to grant it. Android
+  returns no Bluetooth scan results at all without it, and nothing else will work until
+  it&rsquo;s granted.</p>
+  <p><strong>&ldquo;off&rdquo;</strong> &mdash; the <em>Listen for destinations</em> switch is off.</p>
+  <p><strong>&ldquo;waiting for Bluetooth&rdquo;</strong> &mdash; the Karoo hasn&rsquo;t given the
+  extension the radio yet. It retries every few seconds; if it persists, restart the Karoo.</p>
+  <p>If it says <strong>&ldquo;listening&rdquo;</strong>, the Karoo is fine &mdash; check the phone
+  is still on the SendPin screen and unlocked.</p>
+</div>
+
+<div class="sym">
+  <h3>The pin appears, but the Karoo says GPS is required</h3>
+  <p>Working as intended &mdash; the Karoo can&rsquo;t route from <em>here</em> to <em>there</em>
+  without knowing where <em>here</em> is. Take it outside and let it get a fix. You also need
+  the offline map region for that area downloaded.</p>
+</div>
+
+<div class="sym">
+  <h3>Sending the same place twice does nothing the second time</h3>
+  <p>Also intended. The Karoo ignores a destination identical to the last one for two
+  minutes, so a phone left broadcasting doesn&rsquo;t reopen the pin screen over and over.
+  Wait it out, or send somewhere else.</p>
+</div>
+
+<div class="sym">
+  <h3>Nothing happens at all when you share</h3>
+  <p>The Shortcut probably built a bad URL. Open SendPin on the phone and tap
+  <strong>Connection details</strong> &mdash; a red <code>could not parse</code> line means the
+  Shortcut sent something malformed, usually because the place had no coordinates in its
+  Maps link.</p>
+</div>
+
+<div class="sym">
+  <h3>Still stuck</h3>
+  <p><a href="https://github.com/albertjfoo/sendpin/issues">Open an issue</a> and include what
+  the status line on the Karoo says, plus anything red in <strong>Connection details</strong>
+  on the phone. Those two together explain almost every failure.</p>
+</div>
 
 <footer>
   <p><a href="https://github.com/albertjfoo/sendpin">Source on GitHub</a> · MIT licensed</p>
