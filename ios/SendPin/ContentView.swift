@@ -33,7 +33,7 @@ struct ContentView: View {
                 // someone the moment they tick the last box is disorienting —
                 // the thing they were looking at moves. Completion is announced
                 // instead, in place.
-                setUpSection
+                setUpCard
                 howToUseCard
 
                 debugSection
@@ -177,129 +177,42 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Set up
+    // MARK: - Set up and how to use
+    //
+    // Two cards of the same shape. One leads to a checklist, the other to
+    // instructions; neither should look more important than the other by
+    // accident, so they share NavCard.
 
-    private var setUpSection: some View {
+    private var setUpCard: some View {
         Section {
-            setUpRow(
-                title: "Add the Shortcut",
-                detail: "Puts “Send to Karoo” in the Maps share sheet.",
-                url: Links.shortcut,
-                done: $shortcutAdded,
-            )
-            setUpRow(
-                title: "Install the Karoo extension",
-                detail: "The Karoo needs a small app to receive destinations.",
-                url: Links.karooExtension,
-                done: $extensionInstalled,
-            )
-
-            if setupComplete { completionPrompt }
-        } header: {
-            Text("Set up")
-        } footer: {
-            Text("Tap a step to open it, then tick it off. Nothing works until both are done.")
-        }
-    }
-
-    /// Appears in place when the last box is ticked, pointing at what to do
-    /// next rather than silently rearranging the screen.
-    private var completionPrompt: some View {
-        NavigationLink {
-            HowToUseView()
-        } label: {
-            HStack(spacing: 14) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.green)
-                    .frame(width: 30)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Setup complete").font(.subheadline.weight(.semibold))
-                    Text("Next: how to send a place")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.vertical, 3)
-        }
-        .transition(.opacity)
-    }
-
-    /// Tapping the row opens the link; the circle marks it done.
-    ///
-    /// The tick is user-asserted — the phone cannot verify that a Shortcut was
-    /// added or an extension installed, so this records intent rather than
-    /// fact. It is only here to decide which section leads the screen.
-    @ViewBuilder
-    private func setUpRow(title: String, detail: String, url: URL, done: Binding<Bool>) -> some View {
-        HStack(alignment: .center, spacing: 14) {
-            Button {
-                done.wrappedValue.toggle()
+            NavigationLink {
+                SetupChecklistView()
             } label: {
-                Image(systemName: done.wrappedValue ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundStyle(done.wrappedValue ? Color.green : Color.secondary)
-            }
-            .buttonStyle(.borderless)
-            .accessibilityLabel(done.wrappedValue ? "Mark \(title) not done" : "Mark \(title) done")
-
-            if Links.isPlaceholder(url) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title).font(.body)
-                    Label("Link not configured yet", systemImage: "exclamationmark.triangle.fill")
-                        .font(.footnote)
-                        .foregroundStyle(.orange)
-                }
-            } else {
-                Link(destination: url) {
-                    HStack(spacing: 8) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(title)
-                                .font(.body)
-                                .foregroundStyle(.primary)
-                            Text(detail)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        Spacer(minLength: 0)
-                        Image(systemName: "arrow.up.right")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                .buttonStyle(.borderless)
+                NavCard(
+                    icon: "checklist",
+                    title: "Set up",
+                    subtitle: setupComplete
+                        ? "Shortcut and Karoo extension installed"
+                        : "Add the Shortcut and the Karoo extension",
+                    done: setupComplete,
+                )
             }
         }
-        .padding(.vertical, 3)
     }
-
-
-    // MARK: - How to use
 
     private var howToUseCard: some View {
         Section {
             NavigationLink {
                 HowToUseView()
             } label: {
-                HStack(spacing: 14) {
-                    Image(systemName: "paperplane.fill")
-                        .font(.title3)
-                        .foregroundStyle(Brand.ink)
-                        .frame(width: 40, height: 40)
-                        .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("How to use").font(.headline)
-                        Text("Share a place from Maps and send it")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.vertical, 6)
+                NavCard(
+                    icon: "paperplane.fill",
+                    title: "How to use",
+                    subtitle: "Share a place from Maps and send it",
+                )
             }
         }
     }
-
 
     // MARK: - Debug
 
