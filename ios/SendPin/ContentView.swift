@@ -71,12 +71,13 @@ struct ContentView: View {
     /// One of four things is true, and the screen should say which without the
     /// reader having to interpret a log.
     private enum ScreenState {
-        case delivered, sending, idle, unavailable(String)
+        case delivered, sending, notPickedUp, idle, unavailable(String)
 
         var icon: String {
             switch self {
             case .delivered: "checkmark.circle.fill"
             case .sending: "dot.radiowaves.left.and.right"
+            case .notPickedUp: "questionmark.circle.fill"
             case .idle: "location.slash"
             case .unavailable: "exclamationmark.triangle.fill"
             }
@@ -86,6 +87,7 @@ struct ContentView: View {
             switch self {
             case .delivered: .green
             case .sending: .accentColor
+            case .notPickedUp: .orange
             case .idle: .secondary
             case .unavailable: .orange
             }
@@ -95,6 +97,7 @@ struct ContentView: View {
             switch self {
             case .delivered: "Sent to Karoo"
             case .sending: "Sending…"
+            case .notPickedUp: "Nothing picked this up"
             case .idle: "Nothing to send"
             case .unavailable: "Bluetooth unavailable"
             }
@@ -104,6 +107,7 @@ struct ContentView: View {
             switch self {
             case .delivered: "Your Karoo has the destination. Check its screen."
             case .sending: "Keep this screen open until the Karoo picks it up."
+            case .notPickedUp: "Still broadcasting. Open SendPin on the Karoo and check it says \"listening\"."
             case .idle: "Share a place from Maps to send it here."
             case .unavailable(let why): why
             }
@@ -114,7 +118,9 @@ struct ContentView: View {
         guard peripheral.canAdvertise else {
             return .unavailable(peripheral.statusText)
         }
-        if peripheral.isAdvertising { return .sending }
+        if peripheral.isAdvertising {
+            return peripheral.noResponseYet ? .notPickedUp : .sending
+        }
         // Stopped advertising *after* a read means the Karoo took it, which is
         // the peripheral's own auto-stop rather than the user pressing Stop.
         if peripheral.readCount > 0 { return .delivered }
