@@ -49,16 +49,38 @@ struct StepBadge: View {
 /// Shared so Set up and How to use are visibly the same kind of thing — one
 /// leads to a checklist, the other to instructions, and neither should look
 /// more important than the other by accident.
+/// A card's glyph: either an SF Symbol or one of our own drawings.
+enum NavIcon {
+    case symbol(String)
+    case asset(String)
+
+    @ViewBuilder
+    var view: some View {
+        switch self {
+        case .symbol(let name):
+            Image(systemName: name).font(.title3)
+        case .asset(let name):
+            // Template rendering so it takes the ink colour like a symbol does,
+            // and a fixed frame so custom art matches SF Symbol optical size
+            // rather than filling the tile.
+            Image(name)
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 21, height: 21)
+        }
+    }
+}
+
 struct NavCard: View {
-    var icon: String
+    var icon: NavIcon
     var title: String
     var subtitle: String
     var done: Bool = false
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.title3)
+            icon.view
                 .foregroundStyle(Brand.ink)
                 .frame(width: 40, height: 40)
                 .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 11, style: .continuous))

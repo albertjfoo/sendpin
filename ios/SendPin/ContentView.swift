@@ -194,7 +194,7 @@ struct ContentView: View {
                 SetupChecklistView()
             } label: {
                 NavCard(
-                    icon: "checklist",
+                    icon: .symbol("checklist"),
                     title: "Set up",
                     subtitle: setupComplete
                         ? "Shortcut and extension installed"
@@ -207,7 +207,7 @@ struct ContentView: View {
                 HowToUseView()
             } label: {
                 NavCard(
-                    icon: "paperplane.fill",
+                    icon: .asset("SendGlyph"),
                     title: "How to use",
                     subtitle: "Share a place from Maps and send it",
                 )
