@@ -58,7 +58,7 @@ struct WelcomeView: View {
                     Text("SendPin")
                         .font(.largeTitle.weight(.bold))
 
-                    Text("Send a destination from your iPhone to a Karoo 2, and let the bike computer do the navigating.")
+                    Text("Send a destination from your iPhone to your Karoo 2.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -72,17 +72,17 @@ struct WelcomeView: View {
                 point(
                     icon: "map",
                     title: "Share from Maps",
-                    detail: "Find a place in Apple Maps and share it to SendPin.",
+                    detail: "Find a place in Apple Maps and share it to your Karoo 2 in seconds.",
                 )
                 point(
                     icon: "dot.radiowaves.left.and.right",
-                    title: "It goes over Bluetooth",
-                    detail: "Much the way your power meter talks to your head unit. No cloud, no account, no internet on the Karoo.",
+                    title: "No internet required",
+                    detail: "It travels over the Karoo\u{2019}s onboard Bluetooth. No cloud, no account, no SIM.",
                 )
                 point(
                     icon: "location.north.circle",
-                    title: "The Karoo navigates",
-                    detail: "It opens its own Map Pin screen, ready to go.",
+                    title: "Ride there",
+                    detail: "Navigate to the pin with the Karoo\u{2019}s own turn-by-turn navigation.",
                 )
             }
             .padding(.horizontal, 32)
