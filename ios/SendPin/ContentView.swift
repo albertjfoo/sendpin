@@ -2,9 +2,8 @@
 //  ContentView.swift
 //  sendpin
 //
-//  The main screen. Two jobs: tell you what's happening when something is
-//  happening, and otherwise stay out of the way while explaining how to set
-//  the thing up and use it.
+//  The main screen. It leads with whichever thing you need next: setup while
+//  that is unfinished, then how to use it once it is done.
 //
 
 import SwiftUI
@@ -12,8 +11,15 @@ import SwiftUI
 struct ContentView: View {
 
     @Bindable var peripheral: SendPinPeripheral
+
+    @AppStorage(SetupKey.hasSeenWelcome) private var hasSeenWelcome = false
+    @AppStorage(SetupKey.shortcutAdded) private var shortcutAdded = false
+    @AppStorage(SetupKey.extensionInstalled) private var extensionInstalled = false
+
     @State private var showingWelcome = false
     @State private var showingDebug = false
+
+    private var setupComplete: Bool { shortcutAdded && extensionInstalled }
 
     var body: some View {
         NavigationStack {
@@ -21,11 +27,18 @@ struct ContentView: View {
                 brandHeader
                 if let state = activeState { statusSection(state) }
                 destinationSection
-                setUpSection
-                howToUseSection
+
+                // Whichever one you need next goes first.
+                if setupComplete {
+                    howToUsePrimary
+                    setUpDoneSection
+                } else {
+                    setUpSection
+                    howToUseSecondary
+                }
+
                 debugSection
             }
-            .listSectionSpacing(.compact)
             .navigationTitle("SendPin")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -37,7 +50,7 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingWelcome) {
                 WelcomeView {
-                    SetupState.hasSeenWelcome = true
+                    hasSeenWelcome = true
                     showingWelcome = false
                 }
             }
@@ -46,31 +59,35 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if !SetupState.hasSeenWelcome { showingWelcome = true }
+            if !hasSeenWelcome { showingWelcome = true }
         }
     }
 
     // MARK: - Header
+    //
+    // Deliberately not a card: a plain row with no background and no separator,
+    // so it does not read as something you can tap. It is a masthead, not a
+    // control.
 
     private var brandHeader: some View {
         Section {
             HStack(spacing: 14) {
-                AppMark(size: 52)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("SendPin").font(.title3.weight(.semibold))
-                    Text("Destinations, phone to Karoo 2")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
+                AppMark(size: 48)
+                Text("Destinations, phone to Karoo 2")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
             }
-            .padding(.vertical, 6)
+            .padding(.vertical, 2)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         }
     }
 
     // MARK: - Status
     //
-    // Only rendered when there is something to say. An idle "nothing to send"
-    // card is noise on a screen someone opens to read the instructions.
+    // Only rendered when there is something to say.
 
     private enum ScreenState {
         case delivered, sending, notPickedUp, unavailable(String)
@@ -88,8 +105,7 @@ struct ContentView: View {
             switch self {
             case .delivered: .green
             case .sending: .blue
-            case .notPickedUp: .orange
-            case .unavailable: .orange
+            case .notPickedUp, .unavailable: .orange
             }
         }
 
@@ -164,72 +180,134 @@ struct ContentView: View {
     // MARK: - Set up
 
     private var setUpSection: some View {
-        Section("Set up") {
+        Section {
             setUpRow(
-                number: 1,
                 title: "Add the Shortcut",
                 detail: "Puts “Send to Karoo” in the Maps share sheet.",
                 url: Links.shortcut,
+                done: $shortcutAdded,
             )
             setUpRow(
-                number: 2,
                 title: "Install the Karoo extension",
                 detail: "The Karoo needs a small app to receive destinations.",
                 url: Links.karooExtension,
+                done: $extensionInstalled,
             )
+        } header: {
+            Text("Set up")
+        } footer: {
+            Text("Tap a step to open it, then tick it off. Nothing works until both are done.")
         }
     }
 
+    /// Tapping the row opens the link; the circle marks it done.
+    ///
+    /// The tick is user-asserted — the phone cannot verify that a Shortcut was
+    /// added or an extension installed, so this records intent rather than
+    /// fact. It is only here to decide which section leads the screen.
     @ViewBuilder
-    private func setUpRow(number: Int, title: String, detail: String, url: URL) -> some View {
-        if Links.isPlaceholder(url) {
-            // Fails visibly rather than opening a dead page.
-            HStack(alignment: .top, spacing: 14) {
-                StepBadge(number: number)
+    private func setUpRow(title: String, detail: String, url: URL, done: Binding<Bool>) -> some View {
+        HStack(alignment: .center, spacing: 14) {
+            Button {
+                done.wrappedValue.toggle()
+            } label: {
+                Image(systemName: done.wrappedValue ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundStyle(done.wrappedValue ? Color.green : Color.secondary)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel(done.wrappedValue ? "Mark \(title) not done" : "Mark \(title) done")
+
+            if Links.isPlaceholder(url) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title).font(.body)
                     Label("Link not configured yet", systemImage: "exclamationmark.triangle.fill")
                         .font(.footnote)
                         .foregroundStyle(.orange)
                 }
-            }
-            .padding(.vertical, 2)
-        } else {
-            Link(destination: url) {
-                HStack(alignment: .top, spacing: 14) {
-                    StepBadge(number: number)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(title).font(.body).foregroundStyle(.primary)
-                        Text(detail).font(.footnote).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Link(destination: url) {
+                    HStack(spacing: 8) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(title)
+                                .font(.body)
+                                .foregroundStyle(.primary)
+                            Text(detail)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "arrow.up.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
-                    Spacer(minLength: 8)
-                    Image(systemName: "arrow.up.right")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.tertiary)
                 }
-                .padding(.vertical, 2)
+                .buttonStyle(.borderless)
+            }
+        }
+        .padding(.vertical, 3)
+    }
+
+    /// Once both are ticked, setup collapses to one line that can be reopened.
+    private var setUpDoneSection: some View {
+        Section {
+            DisclosureGroup {
+                setUpRow(
+                    title: "Add the Shortcut",
+                    detail: "Puts “Send to Karoo” in the Maps share sheet.",
+                    url: Links.shortcut,
+                    done: $shortcutAdded,
+                )
+                setUpRow(
+                    title: "Install the Karoo extension",
+                    detail: "The Karoo needs a small app to receive destinations.",
+                    url: Links.karooExtension,
+                    done: $extensionInstalled,
+                )
+            } label: {
+                Label {
+                    Text("Setup complete").font(.body)
+                } icon: {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                }
             }
         }
     }
 
     // MARK: - How to use
 
-    private var howToUseSection: some View {
-        Section("How to use") {
-            useRow(1, "Find a place in Apple Maps")
-            useRow(2, "Share → Send to Karoo")
-            useRow(3, "Keep this screen open while it sends")
-            useRow(4, "The Karoo shows the pin, ready to navigate")
+    private var howToUsePrimary: some View {
+        Section {
+            NavigationLink {
+                HowToUseView()
+            } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "paperplane.fill")
+                        .font(.title3)
+                        .foregroundStyle(Brand.ink)
+                        .frame(width: 40, height: 40)
+                        .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("How to use").font(.headline)
+                        Text("Share a place from Maps and send it")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.vertical, 6)
+            }
         }
     }
 
-    private func useRow(_ n: Int, _ text: String) -> some View {
-        HStack(spacing: 14) {
-            StepBadge(number: n)
-            Text(text).font(.body)
+    private var howToUseSecondary: some View {
+        Section {
+            NavigationLink {
+                HowToUseView()
+            } label: {
+                Label("How to use", systemImage: "paperplane")
+            }
         }
-        .padding(.vertical, 2)
     }
 
     // MARK: - Debug
@@ -254,7 +332,7 @@ struct ContentView: View {
 
 // MARK: - Debug
 
-/// The raw log, kept out of the main screen. Still the fastest way to answer
+/// The raw log, kept off the main screen. Still the fastest way to answer
 /// "why didn't that work" when someone reports a problem.
 struct DebugView: View {
     @Bindable var peripheral: SendPinPeripheral

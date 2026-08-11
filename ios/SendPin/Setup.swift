@@ -30,17 +30,16 @@ enum Links {
 
 // MARK: - First-run state
 
-/// Whether the landing screen has been dismissed. Deliberately *not* a record
-/// of whether setup was completed — the app cannot verify that the Shortcut was
-/// added or the Karoo extension installed, and pretending otherwise would mean
-/// nagging people who are already done.
-enum SetupState {
-    private static let key = "hasSeenWelcome"
-
-    static var hasSeenWelcome: Bool {
-        get { UserDefaults.standard.bool(forKey: key) }
-        set { UserDefaults.standard.set(newValue, forKey: key) }
-    }
+/// Keys backing the app's few persisted flags.
+///
+/// The two setup flags are user-asserted, not verified. The phone genuinely
+/// cannot tell whether the Shortcut was added or the Karoo extension installed
+/// — it is a BLE peripheral, it advertises and waits — so these record what the
+/// user says they have done, which is the only signal available.
+enum SetupKey {
+    static let hasSeenWelcome = "hasSeenWelcome"
+    static let shortcutAdded = "shortcutAdded"
+    static let extensionInstalled = "extensionInstalled"
 }
 
 // MARK: - Landing screen
