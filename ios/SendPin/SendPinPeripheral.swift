@@ -58,6 +58,12 @@ final class SendPinPeripheral: NSObject {
     private(set) var isAdvertising = false
     private(set) var subscriberCount = 0
     private(set) var readCount = 0
+    /// True once we have been advertising a while with nothing having read us.
+    /// The phone cannot detect whether the Karoo extension exists — it only
+    /// ever learns anything when something connects — so silence is the only
+    /// signal available, and it has to be surfaced rather than left looking
+    /// like progress.
+    private(set) var noResponseYet = false
     private(set) var log: [PeripheralLogEntry] = []
 
     /// Whatever is here is what a connecting central reads. Set it before you
@@ -83,6 +89,8 @@ final class SendPinPeripheral: NSObject {
     private var manager: CBPeripheralManager?
     private var waypointCharacteristic: CBMutableCharacteristic?
     private var deliveryTimer: Timer?
+    private var responseTimer: Timer?
+    private var readCountAtAdvertiseStart = 0
 
     /// Services are added asynchronously; we must not advertise until every
     /// add has come back through didAdd, or the GATT database a central sees
@@ -128,6 +136,9 @@ final class SendPinPeripheral: NSObject {
         wantsToAdvertise = false
         deliveryTimer?.invalidate()
         deliveryTimer = nil
+        responseTimer?.invalidate()
+        responseTimer = nil
+        noResponseYet = false
         subscriberCount = 0
 
         guard let manager else { return }
@@ -306,6 +317,7 @@ extension SendPinPeripheral: CBPeripheralManagerDelegate {
             return
         }
         isAdvertising = true
+        armNoResponseWatchdog()
         append(.success, "advertising \"KSend\" + waypoint service UUID")
         append(.info, "serving \(waypoint.summary) — \(servedPayload.count) bytes")
     }
@@ -363,6 +375,9 @@ extension SendPinPeripheral: CBPeripheralManagerDelegate {
         request.value = payload.subdata(in: request.offset ..< payload.count)
         peripheral.respond(to: request, withResult: .success)
 
+        noResponseYet = false
+        responseTimer?.invalidate()
+
         if request.offset == 0 {
             readCount += 1
             append(.success, "waypoint read by central (\(payload.count) bytes)")
@@ -381,6 +396,23 @@ extension SendPinPeripheral: CBPeripheralManagerDelegate {
     /// Worth doing because the phone otherwise keeps advertising indefinitely —
     /// it has no idea the destination arrived. On 2026-08-06 that had the Karoo
     /// reconnecting over and over to re-read a waypoint it already had.
+    /// A send normally completes in about two seconds. Well past that with no
+    /// read at all means something is wrong at the other end — most often the
+    /// extension is not installed, is switched off, or never got location
+    /// permission. Say so instead of showing "Sending…" indefinitely.
+    private func armNoResponseWatchdog() {
+        noResponseYet = false
+        readCountAtAdvertiseStart = readCount
+        responseTimer?.invalidate()
+        responseTimer = Timer.scheduledTimer(withTimeInterval: 25, repeats: false) {
+            [weak self] _ in
+            guard let self, self.isAdvertising,
+                  self.readCount == self.readCountAtAdvertiseStart else { return }
+            self.noResponseYet = true
+            self.append(.warning, "nothing has read this yet — is the Karoo extension listening?")
+        }
+    }
+
     private func scheduleDeliveryFinish() {
         deliveryTimer?.invalidate()
         deliveryTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) {
