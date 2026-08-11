@@ -2,8 +2,9 @@
 //  ContentView.swift
 //  sendpin
 //
-//  The main screen. It leads with whichever thing you need next: setup while
-//  that is unfinished, then how to use it once it is done.
+//  The main screen. Fixed layout: setup, then how to use, then debug. Ticking
+//  the last setup box announces itself in place rather than rearranging the
+//  screen underneath you.
 //
 
 import SwiftUI
@@ -28,17 +29,16 @@ struct ContentView: View {
                 if let state = activeState { statusSection(state) }
                 destinationSection
 
-                // Whichever one you need next goes first.
-                if setupComplete {
-                    howToUsePrimary
-                    setUpDoneSection
-                } else {
-                    setUpSection
-                    howToUseSecondary
-                }
+                // Deliberately a fixed order. Rearranging the screen under
+                // someone the moment they tick the last box is disorienting —
+                // the thing they were looking at moves. Completion is announced
+                // instead, in place.
+                setUpSection
+                howToUseCard
 
                 debugSection
             }
+            .animation(.default, value: setupComplete)
             .navigationTitle("SendPin")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -193,11 +193,36 @@ struct ContentView: View {
                 url: Links.karooExtension,
                 done: $extensionInstalled,
             )
+
+            if setupComplete { completionPrompt }
         } header: {
             Text("Set up")
         } footer: {
             Text("Tap a step to open it, then tick it off. Nothing works until both are done.")
         }
+    }
+
+    /// Appears in place when the last box is ticked, pointing at what to do
+    /// next rather than silently rearranging the screen.
+    private var completionPrompt: some View {
+        NavigationLink {
+            HowToUseView()
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.green)
+                    .frame(width: 30)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Setup complete").font(.subheadline.weight(.semibold))
+                    Text("Next: how to send a place")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.vertical, 3)
+        }
+        .transition(.opacity)
     }
 
     /// Tapping the row opens the link; the circle marks it done.
@@ -249,35 +274,10 @@ struct ContentView: View {
         .padding(.vertical, 3)
     }
 
-    /// Once both are ticked, setup collapses to one line that can be reopened.
-    private var setUpDoneSection: some View {
-        Section {
-            DisclosureGroup {
-                setUpRow(
-                    title: "Add the Shortcut",
-                    detail: "Puts “Send to Karoo” in the Maps share sheet.",
-                    url: Links.shortcut,
-                    done: $shortcutAdded,
-                )
-                setUpRow(
-                    title: "Install the Karoo extension",
-                    detail: "The Karoo needs a small app to receive destinations.",
-                    url: Links.karooExtension,
-                    done: $extensionInstalled,
-                )
-            } label: {
-                Label {
-                    Text("Setup complete").font(.body)
-                } icon: {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
-                }
-            }
-        }
-    }
 
     // MARK: - How to use
 
-    private var howToUsePrimary: some View {
+    private var howToUseCard: some View {
         Section {
             NavigationLink {
                 HowToUseView()
@@ -300,15 +300,6 @@ struct ContentView: View {
         }
     }
 
-    private var howToUseSecondary: some View {
-        Section {
-            NavigationLink {
-                HowToUseView()
-            } label: {
-                Label("How to use", systemImage: "paperplane")
-            }
-        }
-    }
 
     // MARK: - Debug
 
