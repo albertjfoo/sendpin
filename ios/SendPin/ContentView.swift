@@ -18,7 +18,7 @@ struct ContentView: View {
     @AppStorage(SetupKey.extensionInstalled) private var extensionInstalled = false
 
     @State private var showingWelcome = false
-    @State private var showingDebug = false
+    @State private var showingConnectionDetails = false
 
     private var setupComplete: Bool { shortcutAdded && extensionInstalled }
 
@@ -35,7 +35,7 @@ struct ContentView: View {
                 // instead, in place.
                 mainCards
 
-                debugSection
+                helpSection
             }
             .animation(.default, value: setupComplete)
             .navigationTitle("")
@@ -53,8 +53,8 @@ struct ContentView: View {
                     showingWelcome = false
                 }
             }
-            .sheet(isPresented: $showingDebug) {
-                DebugView(peripheral: peripheral)
+            .sheet(isPresented: $showingConnectionDetails) {
+                ConnectionDetailsView(peripheral: peripheral)
             }
         }
         .onAppear {
@@ -70,19 +70,19 @@ struct ContentView: View {
 
     private var brandHeader: some View {
         Section {
-            VStack(spacing: 8) {
-                AppMark(size: 56)
-                Text("SendPin").font(.title3.weight(.semibold))
+            VStack(spacing: 10) {
+                AppMark(size: 68)
+                Text("SendPin").font(.title2.weight(.semibold))
                 Text("Send a destination from your iPhone to your Karoo 2.")
-                    .font(.footnote)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
             }
             .frame(maxWidth: .infinity)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
+            .padding(.top, 4)
+            .padding(.bottom, 0)
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
         }
@@ -215,11 +215,11 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Debug
+    // MARK: - Help
 
-    private var debugSection: some View {
+    private var helpSection: some View {
         Section {
-            Button { showingDebug = true } label: {
+            Button { showingConnectionDetails = true } label: {
                 Label("Connection details", systemImage: "wrench.and.screwdriver")
                     .font(.subheadline)
             }
@@ -228,18 +228,16 @@ struct ContentView: View {
                     .font(.subheadline)
             }
         } header: {
-            Text("Debug")
-        } footer: {
-            Text("Connection details shows the raw Bluetooth log. Useful when reporting a problem.")
+            Text("Help")
         }
     }
 }
 
-// MARK: - Debug
+// MARK: - Connection details
 
 /// The raw log, kept off the main screen. Still the fastest way to answer
 /// "why didn't that work" when someone reports a problem.
-struct DebugView: View {
+struct ConnectionDetailsView: View {
     @Bindable var peripheral: SendPinPeripheral
     @Environment(\.dismiss) private var dismiss
 
@@ -250,6 +248,8 @@ struct DebugView: View {
                     LabeledContent("Bluetooth", value: peripheral.statusText)
                     LabeledContent("Advertising", value: peripheral.isAdvertising ? "Yes" : "No")
                     LabeledContent("Reads by Karoo", value: "\(peripheral.readCount)")
+                } footer: {
+                    Text("The raw Bluetooth log. Worth including when reporting a problem.")
                 }
 
                 Section("Log") {
