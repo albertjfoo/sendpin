@@ -73,9 +73,12 @@ struct ContentView: View {
             VStack(spacing: 8) {
                 AppMark(size: 56)
                 Text("SendPin").font(.title3.weight(.semibold))
-                Text("Destinations, phone to Karoo 2")
+                Text("Send a destination from your iPhone to your Karoo 2.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 24)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 8)
