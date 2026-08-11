@@ -29,22 +29,22 @@ struct SetupChecklistView: View {
                     url: Links.karooExtension,
                     done: $extensionInstalled,
                 )
-            } footer: {
-                Text("Tap a step to open it, then tick it off. Nothing works until both are done.")
             }
 
             if complete {
-                Section {
+                // The same card as the home screen, deliberately. Once setup is
+                // done the next thing to do is already a familiar object, so it
+                // reads as "go here" rather than as a new control to decipher.
+                Section("Next") {
                     NavigationLink {
                         HowToUseView()
                     } label: {
-                        Text("Next: how to send a place")
-                            .font(.headline)
-                            .foregroundStyle(Brand.ink)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
+                        NavCard(
+                            icon: "paperplane.fill",
+                            title: "How to use",
+                            subtitle: "Share a place from Maps and send it",
+                        )
                     }
-                    .listRowBackground(Brand.yellow)
                 }
                 .transition(.opacity)
             }
