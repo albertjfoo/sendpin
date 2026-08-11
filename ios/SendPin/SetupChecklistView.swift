@@ -9,6 +9,8 @@ import SwiftUI
 
 struct SetupChecklistView: View {
 
+    @Environment(\.openURL) private var openURL
+
     @AppStorage(SetupKey.shortcutAdded) private var shortcutAdded = false
     @AppStorage(SetupKey.extensionInstalled) private var extensionInstalled = false
 
@@ -80,22 +82,33 @@ struct SetupChecklistView: View {
                         .foregroundStyle(.orange)
                 }
             } else {
-                Link(destination: url) {
+                // A Link tints its whole subtree with the accent colour, which
+                // overrode the explicit .secondary on the detail line and made
+                // both lines blue. A plain-styled Button lets the two be
+                // coloured independently: title reads as the tappable thing,
+                // detail stays supporting text.
+                Button {
+                    openURL(url)
+                } label: {
                     HStack(spacing: 8) {
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(title).font(.body).foregroundStyle(.primary)
+                            Text(title)
+                                .font(.body)
+                                .foregroundStyle(Color.accentColor)
                             Text(detail)
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        Spacer(minLength: 0)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                         Image(systemName: "arrow.up.right")
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.tertiary)
                     }
                 }
-                .buttonStyle(.borderless)
+                .buttonStyle(.plain)
             }
         }
         .padding(.vertical, 3)
