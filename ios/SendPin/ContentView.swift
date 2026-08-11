@@ -2,9 +2,9 @@
 //  ContentView.swift
 //  sendpin
 //
-//  What someone sees after sharing a place from Maps. The job of this screen
-//  is to answer one question — has the Karoo got it yet? — and otherwise stay
-//  out of the way.
+//  The main screen. Two jobs: tell you what's happening when something is
+//  happening, and otherwise stay out of the way while explaining how to set
+//  the thing up and use it.
 //
 
 import SwiftUI
@@ -12,54 +12,53 @@ import SwiftUI
 struct ContentView: View {
 
     @Bindable var peripheral: SendPinPeripheral
-    @State private var showingSetup = false
-    @State private var showingDetails = false
+    @State private var showingWelcome = false
+    @State private var showingDebug = false
 
     var body: some View {
         NavigationStack {
             List {
-                statusSection
+                brandHeader
+                if let state = activeState { statusSection(state) }
                 destinationSection
-                helpSection
+                setUpSection
+                howToUseSection
+                debugSection
             }
+            .listSectionSpacing(.compact)
             .navigationTitle("SendPin")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Setup") { showingSetup = true }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     if peripheral.isAdvertising {
                         Button("Stop") { peripheral.stop() }
                     }
                 }
             }
-            .sheet(isPresented: $showingSetup) {
-                SetupView { showingSetup = false }
+            .sheet(isPresented: $showingWelcome) {
+                WelcomeView {
+                    SetupState.hasSeenWelcome = true
+                    showingWelcome = false
+                }
             }
-            .sheet(isPresented: $showingDetails) {
-                DetailsView(peripheral: peripheral)
+            .sheet(isPresented: $showingDebug) {
+                DebugView(peripheral: peripheral)
             }
         }
         .onAppear {
-            if !SetupState.hasSeenSetup {
-                showingSetup = true
-                SetupState.hasSeenSetup = true
-            }
+            if !SetupState.hasSeenWelcome { showingWelcome = true }
         }
     }
 
-    // MARK: - Status
+    // MARK: - Header
 
-    private var statusSection: some View {
+    private var brandHeader: some View {
         Section {
             HStack(spacing: 14) {
-                Image(systemName: state.icon)
-                    .font(.title2)
-                    .foregroundStyle(state.tint)
-                    .frame(width: 32)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(state.title).font(.headline)
-                    Text(state.detail)
+                AppMark(size: 52)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SendPin").font(.title3.weight(.semibold))
+                    Text("Destinations, phone to Karoo 2")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
@@ -68,17 +67,19 @@ struct ContentView: View {
         }
     }
 
-    /// One of four things is true, and the screen should say which without the
-    /// reader having to interpret a log.
+    // MARK: - Status
+    //
+    // Only rendered when there is something to say. An idle "nothing to send"
+    // card is noise on a screen someone opens to read the instructions.
+
     private enum ScreenState {
-        case delivered, sending, notPickedUp, idle, unavailable(String)
+        case delivered, sending, notPickedUp, unavailable(String)
 
         var icon: String {
             switch self {
             case .delivered: "checkmark.circle.fill"
             case .sending: "dot.radiowaves.left.and.right"
             case .notPickedUp: "questionmark.circle.fill"
-            case .idle: "location.slash"
             case .unavailable: "exclamationmark.triangle.fill"
             }
         }
@@ -86,9 +87,8 @@ struct ContentView: View {
         var tint: Color {
             switch self {
             case .delivered: .green
-            case .sending: .accentColor
+            case .sending: .blue
             case .notPickedUp: .orange
-            case .idle: .secondary
             case .unavailable: .orange
             }
         }
@@ -98,7 +98,6 @@ struct ContentView: View {
             case .delivered: "Sent to Karoo"
             case .sending: "Sending…"
             case .notPickedUp: "Nothing picked this up"
-            case .idle: "Nothing to send"
             case .unavailable: "Bluetooth unavailable"
             }
         }
@@ -108,23 +107,37 @@ struct ContentView: View {
             case .delivered: "Your Karoo has the destination. Check its screen."
             case .sending: "Keep this screen open until the Karoo picks it up."
             case .notPickedUp: "Still broadcasting. Open SendPin on the Karoo and check it says \"listening\"."
-            case .idle: "Share a place from Maps to send it here."
             case .unavailable(let why): why
             }
         }
     }
 
-    private var state: ScreenState {
-        guard peripheral.canAdvertise else {
-            return .unavailable(peripheral.statusText)
-        }
+    private var activeState: ScreenState? {
+        guard peripheral.canAdvertise else { return .unavailable(peripheral.statusText) }
         if peripheral.isAdvertising {
             return peripheral.noResponseYet ? .notPickedUp : .sending
         }
-        // Stopped advertising *after* a read means the Karoo took it, which is
-        // the peripheral's own auto-stop rather than the user pressing Stop.
         if peripheral.readCount > 0 { return .delivered }
-        return .idle
+        return nil
+    }
+
+    private func statusSection(_ state: ScreenState) -> some View {
+        Section {
+            HStack(spacing: 14) {
+                Image(systemName: state.icon)
+                    .font(.title2)
+                    .foregroundStyle(state.tint)
+                    .frame(width: 30)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(state.title).font(.headline)
+                    Text(state.detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.vertical, 4)
+        }
     }
 
     // MARK: - Destination
@@ -133,9 +146,8 @@ struct ContentView: View {
     private var destinationSection: some View {
         if peripheral.waypoint != .none {
             Section("Destination") {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(peripheral.waypoint.name)
-                        .font(.body.weight(.medium))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(peripheral.waypoint.name).font(.body.weight(.medium))
                     Text(peripheral.waypoint.summary)
                         .font(.footnote.monospaced())
                         .foregroundStyle(.secondary)
@@ -149,31 +161,102 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Help
+    // MARK: - Set up
 
-    private var helpSection: some View {
+    private var setUpSection: some View {
+        Section("Set up") {
+            setUpRow(
+                number: 1,
+                title: "Add the Shortcut",
+                detail: "Puts “Send to Karoo” in the Maps share sheet.",
+                url: Links.shortcut,
+            )
+            setUpRow(
+                number: 2,
+                title: "Install the Karoo extension",
+                detail: "The Karoo needs a small app to receive destinations.",
+                url: Links.karooExtension,
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func setUpRow(number: Int, title: String, detail: String, url: URL) -> some View {
+        if Links.isPlaceholder(url) {
+            // Fails visibly rather than opening a dead page.
+            HStack(alignment: .top, spacing: 14) {
+                StepBadge(number: number)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(.body)
+                    Label("Link not configured yet", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote)
+                        .foregroundStyle(.orange)
+                }
+            }
+            .padding(.vertical, 2)
+        } else {
+            Link(destination: url) {
+                HStack(alignment: .top, spacing: 14) {
+                    StepBadge(number: number)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(title).font(.body).foregroundStyle(.primary)
+                        Text(detail).font(.footnote).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 8)
+                    Image(systemName: "arrow.up.right")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+    }
+
+    // MARK: - How to use
+
+    private var howToUseSection: some View {
+        Section("How to use") {
+            useRow(1, "Find a place in Apple Maps")
+            useRow(2, "Share → Send to Karoo")
+            useRow(3, "Keep this screen open while it sends")
+            useRow(4, "The Karoo shows the pin, ready to navigate")
+        }
+    }
+
+    private func useRow(_ n: Int, _ text: String) -> some View {
+        HStack(spacing: 14) {
+            StepBadge(number: n)
+            Text(text).font(.body)
+        }
+        .padding(.vertical, 2)
+    }
+
+    // MARK: - Debug
+
+    private var debugSection: some View {
         Section {
-            Button {
-                showingDetails = true
-            } label: {
-                Label("Connection details", systemImage: "list.bullet.rectangle")
+            Button { showingDebug = true } label: {
+                Label("Connection details", systemImage: "wrench.and.screwdriver")
+                    .font(.subheadline)
             }
-            Button {
-                showingSetup = true
-            } label: {
-                Label("Setup instructions", systemImage: "questionmark.circle")
+            Button { showingWelcome = true } label: {
+                Label("What is this?", systemImage: "questionmark.circle")
+                    .font(.subheadline)
             }
+        } header: {
+            Text("Debug")
         } footer: {
-            Text("Share a place from Maps and choose the SendPin shortcut. This app opens, sends the destination, and stops by itself.")
+            Text("Connection details shows the raw Bluetooth log. Useful when reporting a problem.")
         }
     }
 }
 
-// MARK: - Details
+// MARK: - Debug
 
-/// The old debug console, kept but moved out of the way. Still the fastest way
-/// to answer "why didn't that work" when someone reports a problem.
-struct DetailsView: View {
+/// The raw log, kept out of the main screen. Still the fastest way to answer
+/// "why didn't that work" when someone reports a problem.
+struct DebugView: View {
     @Bindable var peripheral: SendPinPeripheral
     @Environment(\.dismiss) private var dismiss
 
@@ -205,7 +288,7 @@ struct DetailsView: View {
                     }
                 }
             }
-            .navigationTitle("Details")
+            .navigationTitle("Connection details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
