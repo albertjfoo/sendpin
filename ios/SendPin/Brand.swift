@@ -64,20 +64,28 @@ struct NavCard: View {
                 .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.headline)
+                HStack(spacing: 6) {
+                    Text(title).font(.headline)
+                    if done {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(.green)
+                            .accessibilityLabel("Complete")
+                    }
+                }
                 Text(subtitle)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            if done {
-                Spacer(minLength: 8)
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .accessibilityLabel("Complete")
-            }
+            // maxWidth rather than a trailing Spacer: a Spacer competes with the
+            // text for width and makes the subtitle wrap far earlier than it
+            // needs to. The completion tick sits beside the title for the same
+            // reason — trailing, it stole a chunk of the subtitle's line.
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        // Both cards the same height whatever their subtitle does.
+        .frame(minHeight: 44)
         .padding(.vertical, 6)
     }
 }
