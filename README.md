@@ -98,6 +98,40 @@ The phone stops broadcasting as soon as the Karoo has taken the destination.
 - **The Karoo needs a GPS fix**, and the relevant offline map region downloaded.
   Indoors you'll get the pin and a "GPS required".
 
+## Troubleshooting
+
+**"Send to Karoo" isn't in the share sheet.** The Shortcut either isn't installed
+or isn't enabled for sharing. Scroll to the bottom of the share sheet, tap
+**Edit Actions…**, and switch it on.
+
+**The phone says it sent, but nothing happens on the Karoo.** Open SendPin on the
+Karoo — the status line tells you which of these it is:
+
+| status | what it means |
+|---|---|
+| *Location permission is required* | tap to grant it. Android returns no Bluetooth scan results at all without it, and nothing works until it's granted |
+| *off* | the **Listen for destinations** switch is off |
+| *waiting for Bluetooth* | the Karoo hasn't handed over the radio yet. It retries every few seconds; if it persists, restart the Karoo |
+| *listening* | the Karoo is fine — check the phone is still on the SendPin screen and unlocked |
+
+**The pin appears but the Karoo says GPS is required.** Working as intended — it
+can't route from *here* to *there* without knowing where *here* is. Take it
+outside and let it get a fix.
+
+**Sending the same place twice does nothing the second time.** Also intended. The
+Karoo ignores a destination identical to the last one for two minutes, so a phone
+left broadcasting doesn't reopen the pin screen over and over. Wait it out, or
+send somewhere else.
+
+**Nothing happens at all when you share.** The Shortcut probably built a bad URL.
+Open SendPin on the phone and tap **Connection details** — a red
+`could not parse` line means the Shortcut sent something malformed, usually
+because the place had no coordinates in its Maps link.
+
+If you report a problem, include what the Karoo's status line says and anything
+red in **Connection details** on the phone. Those two together explain almost
+every failure.
+
 ## Why I built this
 
 I thought it would be a fun project, given how good the AI tooling has got, and
