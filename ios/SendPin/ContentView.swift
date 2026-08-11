@@ -33,13 +33,12 @@ struct ContentView: View {
                 // someone the moment they tick the last box is disorienting —
                 // the thing they were looking at moves. Completion is announced
                 // instead, in place.
-                setUpCard
-                howToUseCard
+                mainCards
 
                 debugSection
             }
             .animation(.default, value: setupComplete)
-            .navigationTitle("SendPin")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -65,23 +64,24 @@ struct ContentView: View {
 
     // MARK: - Header
     //
-    // Deliberately not a card: a plain row with no background and no separator,
-    // so it does not read as something you can tap. It is a masthead, not a
-    // control.
+    // Centred masthead, deliberately not a card: no background, no separator,
+    // no chevron. A left-aligned row inside a grouped list reads as something
+    // you can tap, which is exactly what it is not.
 
     private var brandHeader: some View {
         Section {
-            HStack(spacing: 14) {
-                AppMark(size: 48)
+            VStack(spacing: 8) {
+                AppMark(size: 56)
+                Text("SendPin").font(.title3.weight(.semibold))
                 Text("Destinations, phone to Karoo 2")
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.secondary)
-                Spacer(minLength: 0)
             }
-            .padding(.vertical, 2)
+            .frame(maxWidth: .infinity)
+            .padding(.top, 8)
+            .padding(.bottom, 12)
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         }
     }
 
@@ -183,7 +183,9 @@ struct ContentView: View {
     // instructions; neither should look more important than the other by
     // accident, so they share NavCard.
 
-    private var setUpCard: some View {
+    /// One section, so the two sit together rather than being separated by a
+    /// full section gap. They are a pair, not two unrelated things.
+    private var mainCards: some View {
         Section {
             NavigationLink {
                 SetupChecklistView()
@@ -192,16 +194,12 @@ struct ContentView: View {
                     icon: "checklist",
                     title: "Set up",
                     subtitle: setupComplete
-                        ? "Shortcut and Karoo extension installed"
-                        : "Add the Shortcut and the Karoo extension",
+                        ? "Shortcut and extension installed"
+                        : "Add the Shortcut and Karoo extension",
                     done: setupComplete,
                 )
             }
-        }
-    }
 
-    private var howToUseCard: some View {
-        Section {
             NavigationLink {
                 HowToUseView()
             } label: {
