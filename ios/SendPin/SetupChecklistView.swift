@@ -42,7 +42,7 @@ struct SetupChecklistView: View {
                         HowToUseView()
                     } label: {
                         NavCard(
-                            icon: "paperplane.fill",
+                            icon: .asset("SendGlyph"),
                             title: "How to use",
                             subtitle: "Share a place from Maps and send it",
                         )
