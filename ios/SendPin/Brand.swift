@@ -43,3 +43,41 @@ struct StepBadge: View {
             .accessibilityHidden(true)
     }
 }
+
+/// The prominent row used for the two main destinations on the home screen.
+///
+/// Shared so Set up and How to use are visibly the same kind of thing — one
+/// leads to a checklist, the other to instructions, and neither should look
+/// more important than the other by accident.
+struct NavCard: View {
+    var icon: String
+    var title: String
+    var subtitle: String
+    var done: Bool = false
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.title3)
+                .foregroundStyle(Brand.ink)
+                .frame(width: 40, height: 40)
+                .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.headline)
+                Text(subtitle)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            if done {
+                Spacer(minLength: 8)
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .accessibilityLabel("Complete")
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
