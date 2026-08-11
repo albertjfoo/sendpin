@@ -67,7 +67,8 @@ The phone stops broadcasting as soon as the Karoo has taken the destination.
 ## Installing
 
 1. **Install the iOS app** — *App Store link, coming*
-2. **Install the iOS Shortcut** — *iCloud link, coming*
+2. **[Add the Shortcut](https://www.icloud.com/shortcuts/6aacca931a7d41d8b4f7821992f96256)** — adds “Send to Karoo” to the Maps share
+   sheet. Tap the link on your iPhone, review the actions it shows you, and add it.
 3. **Install the Karoo extension** —
    [latest release](https://github.com/albertjfoo/sendpin/releases/latest)
 
