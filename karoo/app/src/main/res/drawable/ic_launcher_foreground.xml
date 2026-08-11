@@ -1,10 +1,9 @@
 <!--
-  The SendPin mark: a pin with a plus. Path taken verbatim from the Figma SVG
-  export, so this is the same artwork as the App Store icon rather than a
-  redrawing of it.
+  A pin with a send arrow. Paths taken verbatim from the Figma SVG export, so
+  this is the same artwork as the App Store icon rather than a redrawing.
 
   Viewport is 1024 to match that export. The adaptive-icon safe zone is the
-  centre 66%, i.e. 170..853 here; the artwork spans roughly 273..803 including
+  centre 66%, i.e. 170..853 here; the artwork spans roughly 273..783 including
   stroke width, so it survives any mask a launcher applies without scaling.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -13,10 +12,19 @@
     android:viewportWidth="1024"
     android:viewportHeight="1024">
 
+    <!-- Pin outline and its eye, open on the lower right where the arrow sits. -->
     <path
         android:strokeColor="#111111"
         android:strokeWidth="50"
         android:strokeLineCap="round"
         android:fillColor="#00000000"
-        android:pathData="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M618.688 672.018H778.688M698.688 592.011V752.026M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z" />
+        android:pathData="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z" />
+
+    <!-- Send arrow. Filled and stroked, as in the export. -->
+    <path
+        android:fillColor="#111111"
+        android:strokeColor="#111111"
+        android:strokeWidth="19.5536"
+        android:strokeLineCap="round"
+        android:pathData="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z" />
 </vector>

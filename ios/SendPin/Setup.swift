@@ -19,7 +19,7 @@ enum Links {
     /// The Shortcut, shared from the Shortcuts app via Share → Copy iCloud Link.
     /// Must be an iCloud link: a .shortcut file downloaded from GitHub cannot be
     /// installed directly on iOS.
-    static let shortcut = URL(string: "https://example.com/shortcut")!
+    static let shortcut = URL(string: "https://www.icloud.com/shortcuts/6aacca931a7d41d8b4f7821992f96256")!
 
     /// The project page carrying the Karoo APK and install instructions.
     static let karooExtension = URL(string: "https://example.com/karoo")!
