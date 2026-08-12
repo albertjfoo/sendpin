@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install SendPin on your Karoo 2</title>
+<meta name="description" content="Install the SendPin extension on a Hammerhead Karoo 2 from your browser. No adb, no terminal.">
+<style>
+:root {
+  --brand: #FFE800; --ink: #111111;
+  --bg: #ffffff; --fg: #14181d; --muted: #5c6672;
+  --card: #f5f7f9; --line: #e2e7ec;
+  --ok: #1a7f37; --bad: #b3261e; --warn-bg: #fff8e6; --warn-line: #e8d9a8; --warn-fg: #6b5310;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0f1216; --fg:#e8ecf1; --muted:#9aa5b1; --card:#171c22; --line:#262d36;
+          --ok:#3fb950; --bad:#f85149; --warn-bg:#241f10; --warn-line:#4a3f1c; --warn-fg:#e6d18a; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }
+.wrap { max-width:680px; margin:0 auto; padding:48px 24px 80px; }
+.mark { width:64px; height:64px; border-radius:15px; background:var(--brand);
+        display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+h1 { font-size:2rem; margin:0 0 8px; letter-spacing:-0.02em; }
+.tagline { color:var(--muted); margin:0 0 32px; }
+h2 { font-size:1.15rem; margin:36px 0 12px; }
+p { margin:0 0 14px; }
+a { color:#0a66c2; }
+ol { padding-left:22px; } li { margin-bottom:8px; }
+button { font:inherit; font-weight:500; border:0; border-radius:10px; padding:14px 22px; cursor:pointer; }
+#connect { background:var(--brand); color:var(--ink); }
+#install { background:var(--ink); color:#fff; }
+button:disabled { opacity:.4; cursor:not-allowed; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:20px 0; }
+.note { background:var(--warn-bg); border:1px solid var(--warn-line); color:var(--warn-fg);
+        border-radius:12px; padding:16px 20px; margin:20px 0; font-size:.95rem; }
+#log { font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap;
+       margin-top:16px; max-height:280px; overflow-y:auto; }
+.ok { color:var(--ok); } .bad { color:var(--bad); } .dim { color:var(--muted); }
+code { background:var(--card); border:1px solid var(--line); border-radius:5px; padding:1px 6px;
+       font:13px ui-monospace,SFMono-Regular,Menlo,monospace; }
+footer { border-top:1px solid var(--line); margin-top:56px; padding-top:20px; color:var(--muted); font-size:.87rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="mark">
+  <svg width="40" height="40" viewBox="0 0 1024 1024" aria-hidden="true">
+    <path fill="none" stroke="#111111" stroke-width="50" stroke-linecap="round"
+      d="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z"/>
+    <path fill="#111111" stroke="#111111" stroke-width="19.55" stroke-linecap="round"
+      d="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z"/>
+  </svg>
+</div>
+
+<h1>Install SendPin on your Karoo&nbsp;2</h1>
+<p class="tagline">Straight from this page. No adb, no terminal, no downloads.</p>
+
+<div id="unsupported" class="note" hidden>
+  <strong>This browser can't do it.</strong> Installing needs WebUSB, which only
+  Chromium browsers support — Chrome, Edge or Opera, on a computer or an Android
+  phone. Safari and every iPhone browser are out, because Apple doesn't implement
+  WebUSB. You can still
+  <a href="https://github.com/albertjfoo/sendpin#installing">install with adb</a>.
+</div>
+
+<h2>First, on the Karoo</h2>
+<ol>
+  <li>Settings → About → tap the build number seven times</li>
+  <li>Go back, open <strong>Developer options</strong>, turn on <strong>USB debugging</strong></li>
+  <li>Plug the Karoo into this computer with a USB cable</li>
+</ol>
+<p class="dim">Android won't let anything install over USB without that, and there's no way around it from here.</p>
+
+<h2>Then</h2>
+<div class="card">
+  <button id="connect">Connect to Karoo</button>
+  <button id="install" disabled>Install SendPin</button>
+  <div id="log" class="dim">Not connected yet.</div>
+</div>
+
+<p>Watch the Karoo's screen after connecting — it'll ask whether to allow USB
+debugging from this computer. Tick <em>always allow</em> and accept.</p>
+
+<h2>After it installs</h2>
+<ol>
+  <li>Open <strong>SendPin</strong> from the Karoo's main menu</li>
+  <li>Grant location permission when it asks — Android returns no Bluetooth scan
+      results without it, and the extension will look healthy while finding nothing</li>
+  <li>Check the status line says <strong>listening</strong></li>
+</ol>
+
+<footer>
+  <p><a href="https://github.com/albertjfoo/sendpin">SendPin on GitHub</a> · MIT licensed</p>
+  <p>Not affiliated with or endorsed by Hammerhead or SRAM.</p>
+</footer>
+
+</div>
+
+<script type="module">
+import { Adb, AdbDaemonTransport } from "https://esm.sh/@yume-chan/adb@2.1.0";
+import AdbWebCredentialStore from "https://esm.sh/@yume-chan/adb-credential-web@2.1.0";
+import { AdbDaemonWebUsbDeviceManager } from "https://esm.sh/@yume-chan/adb-daemon-webusb@2.1.0";
+
+const APK_URL = "sendpin.apk";
+const REMOTE = "/data/local/tmp/sendpin.apk";
+
+const logEl = document.getElementById("log");
+const connectBtn = document.getElementById("connect");
+const installBtn = document.getElementById("install");
+let adb = null;
+
+function log(msg, cls = "") {
+  const line = document.createElement("div");
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  if (logEl.classList.contains("dim")) { logEl.textContent = ""; logEl.classList.remove("dim"); }
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+if (!("usb" in navigator)) {
+  document.getElementById("unsupported").hidden = false;
+  connectBtn.disabled = true;
+}
+
+connectBtn.addEventListener("click", async () => {
+  connectBtn.disabled = true;
+  try {
+    log("Asking for a device…");
+    const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
+    if (!manager) throw new Error("WebUSB unavailable");
+
+    const device = await manager.requestDevice();
+    if (!device) { log("No device chosen.", "bad"); connectBtn.disabled = false; return; }
+
+    log(`Found ${device.serial}. Connecting…`);
+    const connection = await device.connect();
+
+    // Blocks until the Karoo's "Allow USB debugging?" prompt is accepted, so
+    // say what is happening rather than appearing to hang.
+    log("Check the Karoo — accept the USB debugging prompt.");
+    const transport = await AdbDaemonTransport.authenticate({
+      serial: device.serial,
+      connection,
+      credentialStore: new AdbWebCredentialStore("SendPin installer"),
+    });
+
+    adb = new Adb(transport);
+    log("Connected.", "ok");
+    installBtn.disabled = false;
+  } catch (err) {
+    log(`Could not connect: ${err.message}`, "bad");
+    connectBtn.disabled = false;
+  }
+});
+
+installBtn.addEventListener("click", async () => {
+  installBtn.disabled = true;
+  try {
+    log("Fetching the app…");
+    const res = await fetch(APK_URL);
+    if (!res.ok) throw new Error(`could not download the app (${res.status})`);
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    log(`Got ${(bytes.length / 1048576).toFixed(1)} MB.`);
+
+    // Push then `pm install`, deliberately — not the streaming session API.
+    // The Karoo 2 runs Android 8.1, which predates it; that is exactly where
+    // other browser-based installers fail, silently, at 100%.
+    log("Copying to the Karoo…");
+    const sync = await adb.sync();
+    try {
+      await sync.write({
+        filename: REMOTE,
+        file: new ReadableStream({
+          start(controller) { controller.enqueue(bytes); controller.close(); },
+        }),
+      });
+    } finally {
+      await sync.dispose();
+    }
+    log("Copied.");
+
+    log("Installing…");
+    const out = await adb.subprocess.noneProtocol.spawnWaitText(
+      `pm install -r ${REMOTE}`,
+    );
+    const text = (typeof out === "string" ? out : out?.stdout ?? "").trim();
+    log(text || "(no output)");
+
+    if (/success/i.test(text)) {
+      log("Installed. Open SendPin on the Karoo and grant location permission.", "ok");
+    } else {
+      log("That does not look like success — see the output above.", "bad");
+      installBtn.disabled = false;
+    }
+  } catch (err) {
+    log(`Install failed: ${err.message}`, "bad");
+    installBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

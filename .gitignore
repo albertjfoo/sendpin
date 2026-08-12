@@ -12,3 +12,4 @@ karoo/local.properties
 karoo/keystore.properties
 *.keystore
 *.jks
+docs/sendpin.apk

@@ -297,6 +297,19 @@ Three things unblock the moment it is public, and none get harder for waiting:
 - **App Store support URL.** Required to submit, not to draft.
 - **A listing in [awesome-karoo](https://github.com/timklge/awesome-karoo)** —
   a README pull request, and where Karoo owners actually look.
+- **Hosting the WebUSB installer.** `docs/index.html` installs the extension
+  from a browser over WebUSB, using push + `pm install` rather than the
+  streaming session API that fails on Android 8.1. GitHub Pages would serve it
+  at `albertjfoo.github.io/sendpin/`, and the HTTPS it provides is required —
+  WebUSB refuses to run outside a secure context.
+
+  One decision outstanding: **where the APK comes from.** `docs/sendpin.apk` is
+  currently gitignored, so Pages would 404 on it. Either commit the binary into
+  `docs/` — certain to work, same-origin, but roughly 2.8 MB of repo per release
+  forever — or fetch it from the GitHub release, which is cleaner but depends on
+  release assets sending permissive CORS headers. Untested, because a private
+  repo's assets are not publicly fetchable. Try the fetch first; committing is
+  the fallback and is a one-line change either way.
 
 ## Ideas not pursued
 
