@@ -137,3 +137,19 @@ it needs someone to check what the share actually contains.
 Costs to weigh if it is ever picked up: a geocoded address returns Apple's
 coordinates for that address, which may not match Google's pin for a car park
 entrance or an unnamed trailhead; and it needs phone signal at share time.
+
+## Range limit
+
+The Karoo's own resources carry the string:
+
+```
+rideapp_pin_out_of_range   "Pin must be within %s for nav."
+```
+
+so pin navigation is distance-limited. The Karoo handles routes up to roughly
+**500 miles (800 km)**, which is the practical ceiling here too.
+
+Not worth engineering around: a destination further away than that is not a
+place you are about to cycle to. The payload is unaffected either way — the
+coordinates transfer fine and the pin appears; only the Karoo's routing
+declines. Noted so it is not rediscovered as a bug.

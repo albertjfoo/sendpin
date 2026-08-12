@@ -98,6 +98,10 @@ The phone stops broadcasting as soon as the Karoo has taken the destination.
   rule, not something an app can work around.
 - **The Karoo needs a GPS fix**, and the relevant offline map region downloaded.
   Indoors you'll get the pin and a "GPS required".
+- **Destinations have to be within range.** The Karoo handles routes up to about
+  500 miles (800 km), so anywhere you could plausibly ride to is fine. Send it
+  somewhere across the country and the pin arrives but the Karoo declines to
+  route to it.
 
 ## Troubleshooting
 
