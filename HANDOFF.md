@@ -281,6 +281,23 @@ adb shell dumpsys activity services com.albert.sendpin     # is it bound?
 The iPhone app keeps its own on-screen log — use that rather than the Xcode
 console, since testing means standing over the bike with the phone in hand.
 
+## Parked, waiting on the repo going public
+
+The repo stays private until the iOS app ships. Publishing sooner would offer
+someone the Karoo half of a system whose other half they cannot get.
+
+Three things unblock the moment it is public, and none get harder for waiting:
+
+- **Auto-update.** karoo-ext defines `io.hammerhead.karooext.MANIFEST_URL`, and
+  karoo-ext's own release ships a `manifest.json` carrying `latestVersionCode`
+  and `latestApkUrl`. Declare that meta-data, host the manifest, and long-press
+  → Update works on the device — awesome-karoo confirms that works on Karoo 2.
+  Needs a public fetch, so a private repo 404s. This is the biggest remaining
+  friction win: it makes the painful install a one-time cost.
+- **App Store support URL.** Required to submit, not to draft.
+- **A listing in [awesome-karoo](https://github.com/timklge/awesome-karoo)** —
+  a README pull request, and where Karoo owners actually look.
+
 ## Ideas not pursued
 
 - **Ride-only scanning.** Watch `RideState` and claim the radio only while
