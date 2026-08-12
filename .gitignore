@@ -9,3 +9,6 @@ karoo/build/
 karoo/app/build/
 karoo/.gradle/
 karoo/local.properties
+karoo/keystore.properties
+*.keystore
+*.jks
