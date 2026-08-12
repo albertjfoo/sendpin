@@ -1,7 +1,24 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
+
+// Signing config lives outside the repo. keystore.properties is gitignored, so
+// a clone without it still builds -- it just falls back to debug signing, which
+// is right for contributors and wrong for releases.
+//
+// Android refuses an update whose signature does not match what is already
+// installed, so every published release must be signed with the same key or
+// users have to uninstall first.
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
+}
+val hasReleaseSigning = keystorePropsFile.exists() &&
+    keystoreProps.getProperty("storePassword").orEmpty().isNotBlank() &&
+    keystoreProps.getProperty("storePassword") != "PUT_YOUR_PASSWORD_HERE"
 
 android {
     namespace = "com.albert.sendpin"
@@ -17,9 +34,23 @@ android {
         versionName = "0.1"
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
