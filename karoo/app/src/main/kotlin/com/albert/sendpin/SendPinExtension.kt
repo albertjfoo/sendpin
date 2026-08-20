@@ -146,12 +146,13 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
                         navigateTo(waypoint)
                     }
 
-                    // The phone keeps advertising long after a send — it has no
-                    // idea we already have the destination. Reconnecting every
-                    // couple of seconds to rediscover the same waypoint cost 25
-                    // connections to deliver one destination on 2026-08-06, wore
-                    // both batteries, and made status=133 failures more likely.
-                    // Once a waypoint is known, check back rarely.
+                    // Reconnecting every couple of seconds to rediscover a
+                    // waypoint we already have cost 25 connections to deliver
+                    // one destination on 2026-08-06, wore both batteries, and
+                    // made status=133 failures more likely. So back off once a
+                    // waypoint is known — but only briefly, because the phone
+                    // now stops advertising shortly after a read, and a long
+                    // back-off delays noticing the next genuine send.
                     delay(if (isRepeat) SETTLED_DELAY_MS else RESCAN_DELAY_MS)
                 }
             } finally {
@@ -161,10 +162,18 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
     }
 
     /**
-     * The phone keeps advertising after a send, so the same waypoint would
-     * otherwise be picked up over and over and re-open the pin drop. Ignore an
-     * identical destination for a cooldown; re-sending the same place after
-     * that still works.
+     * Absorbs the handful of repeat sightings inside a single send, without
+     * blocking a deliberate re-send.
+     *
+     * This used to hold for two minutes, from when the phone advertised
+     * indefinitely and would otherwise re-open the pin drop forever. Both
+     * phone-side paths now stop advertising ~1.5s after the last read, so that
+     * premise is gone — and the long window had become the bug: back out of the
+     * pin on the Karoo, send the same place again, and the phone reported
+     * success while the Karoo silently discarded it.
+     *
+     * The window is kept, short, because it still costs nothing and still
+     * covers a phone that does keep advertising.
      */
     private fun isDuplicate(waypoint: WaypointClient.Waypoint): Boolean {
         val now = System.currentTimeMillis()
@@ -268,9 +277,17 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
         private const val EXTENSION_ID = "sendpin"
         private const val ACTION_FETCH = "fetch"
         private const val RESCAN_DELAY_MS = 2_000L
-        private const val SETTLED_DELAY_MS = 20_000L
+        private const val SETTLED_DELAY_MS = 5_000L
         private const val DISABLED_POLL_MS = 5_000L
-        private const val DUPLICATE_WINDOW_MS = 120_000L
+
+        /**
+         * Must stay comfortably larger than [SETTLED_DELAY_MS]. The window
+         * slides on every repeat sighting, so a phone that really is still
+         * advertising keeps refreshing it and never re-opens the pin drop. If
+         * this ever drops below the settled delay, the gap between sightings
+         * exceeds the window and the same destination fires forever.
+         */
+        private const val DUPLICATE_WINDOW_MS = 10_000L
         private const val RADIO_RETRY_MS = 10_000L
         private const val ADAPTER_RECHECK_MS = 15_000L
     }
