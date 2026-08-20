@@ -75,7 +75,7 @@ struct WelcomeView: View {
                 point(
                     icon: "map",
                     title: "Share from Maps",
-                    detail: "Find a place in Apple Maps, tap Share, tap SendPin. That is the whole thing.",
+                    detail: "Find a place in Apple Maps, tap Share, select SendPin and navigate on your Karoo.",
                 )
                 point(
                     icon: "dot.radiowaves.left.and.right",
