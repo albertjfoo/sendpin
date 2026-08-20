@@ -3,203 +3,1166 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Install SendPin on your Karoo 2</title>
-<meta name="description" content="Install the SendPin extension on a Hammerhead Karoo 2 from your browser. No adb, no terminal.">
+<title>SendPin — send a location pin from Apple Maps to your Karoo 2</title>
+<meta name="description" content="Send a location pin from Apple Maps to your Hammerhead Karoo 2 and navigate there. Setup, install and instructions.">
 <style>
 :root {
-  --brand: #FFE800; --ink: #111111;
-  --bg: #ffffff; --fg: #14181d; --muted: #5c6672;
-  --card: #f5f7f9; --line: #e2e7ec;
-  --ok: #1a7f37; --bad: #b3261e; --warn-bg: #fff8e6; --warn-line: #e8d9a8; --warn-fg: #6b5310;
+  --brand:#FFE800; --ink:#111111;
+  --bg:#ffffff; --fg:#14181d; --muted:#5c6672;
+  --card:#f7f9fa; --line:#e2e7ec; --rail:#eef1f4;
+  --icon:#14181d;
+  --btn:#111111; --btn-fg:#ffffff;
+  /* Card CTAs sit quiet until pointed at. In light mode the strong state is
+     near-black rather than white — white on a white page is invisible, so the
+     contrast jump is preserved even though the colour flips. */
+  --cta:#e6eaee; --cta-fg:#14181d; --cta-hi:#111111; --cta-hi-fg:#ffffff;
+  --sheet:#ffffff;
+  --link:#0a66c2;
+  --ok:#1a7f37; --bad:#b3261e; --warn-bg:#fff8e6; --warn-line:#e8d9a8; --warn-fg:#6b5310;
 }
-@media (prefers-color-scheme: dark) {
-  :root { --bg:#0f1216; --fg:#e8ecf1; --muted:#9aa5b1; --card:#171c22; --line:#262d36;
+:root[data-theme="dark"] { --bg:#0f1216; --fg:#e8ecf1; --muted:#9aa5b1; --card:#171c22; --line:#262d36; --rail:#1c222a;
+          --icon:#FFE800; --btn:#e8ecf1; --btn-fg:#111111; --sheet:#151a20;
+          --cta:#2b333d; --cta-fg:#e8ecf1; --cta-hi:#ffffff; --cta-hi-fg:#111111;
+          --link:#6cb0f5;
           --ok:#3fb950; --bad:#f85149; --warn-bg:#241f10; --warn-line:#4a3f1c; --warn-fg:#e6d18a; }
-}
-* { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }
-.wrap { max-width:680px; margin:0 auto; padding:48px 24px 80px; }
-.mark { width:64px; height:64px; border-radius:15px; background:var(--brand);
-        display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+       font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }
+a { color:var(--link); }
+.wrap { max-width:1060px; margin:0 auto; padding:0 24px; }
+
+button, .btn { font:inherit; font-size:.95rem; font-weight:500; border:0; border-radius:10px;
+               padding:11px 18px; cursor:pointer; text-decoration:none; text-align:center;
+               background:var(--rail); color:var(--fg);
+               display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+button svg { flex:none; }
+[hidden] { display:none !important; }
+.primary { background:var(--brand); color:var(--ink); }
+.dark    { background:var(--btn); color:var(--btn-fg); }
+.cta { background:var(--cta); color:var(--cta-fg); transition:background .16s ease, color .16s ease; }
+.step:hover .cta, .cta:hover, .cta:focus-visible { background:var(--cta-hi); color:var(--cta-hi-fg); }
+.cta:active { background:var(--cta-hi); color:var(--cta-hi-fg); transform:translateY(1px); }
+button:disabled { opacity:.42; cursor:not-allowed; }
+.ghost { background:transparent; border:1px solid var(--line); color:var(--fg);
+         font-size:.9rem; padding:9px 15px; }
+.ghost:hover { border-color:var(--muted); }
+.icon-only { padding:9px 11px; }
+.t-sun { display:none; }
+:root[data-theme="dark"] .t-sun { display:block; }
+:root[data-theme="dark"] .t-moon { display:none; }
+
+/* ---------- Top nav ---------- */
+.topnav { display:flex; justify-content:flex-end; gap:9px; padding:18px 0 0; flex-wrap:wrap; }
+@media (max-width:560px) { .topnav { justify-content:center; } }
+
+/* ---------- Hero ---------- */
+.hero { text-align:center; padding:26px 0 30px; }
+.mark { width:84px; height:84px; border-radius:20px; background:var(--brand); margin:0 auto 20px;
+        display:flex; align-items:center; justify-content:center; }
 h1 { font-size:2rem; margin:0 0 8px; letter-spacing:-0.02em; }
-.tagline { color:var(--muted); margin:0 0 32px; }
-h2 { font-size:1.15rem; margin:36px 0 12px; }
-p { margin:0 0 14px; }
-a { color:#0a66c2; }
-ol { padding-left:22px; } li { margin-bottom:8px; }
-button { font:inherit; font-weight:500; border:0; border-radius:10px; padding:14px 22px; cursor:pointer; }
-#connect { background:var(--brand); color:var(--ink); }
-#install { background:var(--ink); color:#fff; }
-button:disabled { opacity:.4; cursor:not-allowed; }
-.card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:20px; margin:20px 0; }
+.tagline { color:var(--muted); margin:0 auto; max-width:560px; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:20px 0 0; padding:0; list-style:none; }
+.chips li { background:var(--rail); border:1px solid var(--line); border-radius:999px;
+            padding:5px 13px; font-size:.83rem; color:var(--muted); }
+.rule { height:1px; background:linear-gradient(90deg,transparent,var(--line) 20%,var(--line) 80%,transparent); margin:34px 0 0; }
+
+/* ---------- The three steps ---------- */
+.flow { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; padding:36px 0 0; align-items:stretch; }
+@media (max-width:860px) { .flow { grid-template-columns:1fr; gap:24px; } }
+.step { min-width:0; display:flex; flex-direction:column; }
+.panel { position:relative; flex:1; background:var(--card); border:1px solid var(--line); border-radius:16px;
+         padding:24px 20px 26px;
+         display:flex; flex-direction:column; align-items:center; gap:20px;
+         transition:border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+/* A phone, a Karoo and an icon are three different heights. Pinning the slot
+   is what keeps the three buttons on one line. */
+.media { height:170px; display:flex; align-items:center; justify-content:center; }
+.step:hover .panel { border-color:rgba(255,232,0,.34);
+                     box-shadow:0 0 0 3px rgba(255,232,0,.07), 0 12px 30px rgba(0,0,0,.28); }
+:root[data-theme="dark"] .step:hover .panel { background:#1b212a;
+  box-shadow:0 0 0 3px rgba(255,232,0,.07), 0 12px 30px rgba(0,0,0,.4); }
+.num { position:absolute; top:14px; left:14px; width:26px; height:26px; border-radius:50%;
+       display:flex; align-items:center; justify-content:center;
+       font-size:.8rem; font-weight:600; background:var(--line); color:var(--muted); }
+.step.live .num { background:var(--brand); color:var(--ink); }
+.icon { color:var(--icon); }
+.step.idle .icon, .step.idle .mini { opacity:.34; }
+
+/* Card 1 shows the actual app rather than a drawing of a phone. A line-art
+   phone and a line-art Karoo are the same rounded rectangle at a glance —
+   a screenshot can't be mistaken for anything else on the page. */
+.mini { --bezel:#3b434e; --r:11px; width:76px; border:3px solid var(--bezel);
+        border-radius:var(--r); padding:2px; background:var(--bezel);
+        box-shadow:0 6px 16px rgba(0,0,0,.34); }
+.mini .scr { aspect-ratio:1206/2622; border-radius:calc(var(--r) - 3px); overflow:hidden;
+             background:#f2f2f7; }
+.mini img { display:block; width:100%; height:100%; object-fit:cover; }
+
+/* Karoo 2: 480×800, so squatter than a phone and with a chunkier bezel. A
+   separate component rather than a resized .mini — same ratio would be wrong.
+   Side nubs stand in for its buttons; they're what stops it reading as a
+   small tablet. */
+.karoo { --bezel:#23282f; --r:10px; position:relative; width:92px; border:4px solid var(--bezel);
+         border-radius:var(--r); padding:3px; background:var(--bezel);
+         box-shadow:0 6px 16px rgba(0,0,0,.34); }
+.karoo::before, .karoo::after { content:""; position:absolute; top:26%; width:2px; height:13%;
+                                background:var(--bezel); border-radius:2px; }
+.karoo::before { left:-6px; box-shadow:0 22px 0 var(--bezel); }
+.karoo::after  { right:-6px; box-shadow:0 22px 0 var(--bezel); }
+.karoo .scr { aspect-ratio:480/800; border-radius:calc(var(--r) - 3px); overflow:hidden; background:#000; }
+.karoo img { display:block; width:100%; height:100%; object-fit:cover; }
+
+/* Card 3 is the transfer, so it shows both devices. Only the width is
+   overridden — border and corner radius are inherited, so both phones on the
+   page are drawn the same way and this one just happens to be smaller. */
+.pair { display:flex; align-items:center; gap:9px; }
+.pair .mini  { width:68px; }
+.pair .karoo { width:82px; }
+/* Yellow vanished against the light card. --fg is near-black in
+   light and near-white in dark, which is what the arrow wants. */
+.pair .arrow { color:var(--fg); flex:none; }
+@media (max-width:860px) {
+  .panel { padding:18px 18px 20px; gap:16px; }
+  .media { height:120px; }
+  .icon { width:58px; height:58px; }
+}
+
+/* ---------- Story clip ---------- */
+.clip { margin:0 0 26px; }
+.clip img { display:block; width:100%; height:auto; border-radius:14px;
+            background:var(--card); }
+
+/* ---------- Feedback ---------- */
+.feedback { display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+            justify-content:space-between; margin:40px 0 0; padding:22px 26px;
+            border:1px solid var(--line); border-radius:16px; background:var(--card); }
+.feedback-copy { flex:1; min-width:260px; }
+.feedback h3 { margin:0 0 5px; font-size:1.02rem; }
+.feedback p { margin:0; color:var(--muted); font-size:.92rem; max-width:56ch; }
+
+/* ---------- Story ---------- */
+.divider { border:0; border-top:1px solid var(--line); margin:56px 0 0; }
+.story { max-width:660px; margin:0 auto; padding:46px 0 10px; }
+.story h2 { font-size:1.75rem; letter-spacing:-0.02em; margin:0 0 18px; }
+.story h3 { font-size:1.05rem; margin:26px 0 8px; }
+
+/* ---------- Overlays ---------- */
+dialog { border:0; padding:0; background:transparent; max-width:640px; width:calc(100% - 32px); }
+dialog::backdrop { background:rgba(0,0,0,.55); backdrop-filter:blur(2px); }
+.sheet { background:var(--sheet); color:var(--fg); border:1px solid var(--line); border-radius:18px;
+         padding:26px 28px 30px; max-height:86vh; overflow-y:auto; }
+@media (max-width:560px) { .sheet { padding:22px 20px 26px; } }
+.sheet-top { display:flex; align-items:flex-start; gap:14px; margin:0 0 4px; }
+.sheet h2 { font-size:1.25rem; margin:0; letter-spacing:-0.01em; flex:1; }
+.x { background:var(--rail); border-radius:9px; width:32px; height:32px; padding:0; flex:none;
+     font-size:1.05rem; line-height:1; color:var(--muted); }
+.lede { color:var(--muted); margin:0 0 16px; }
+h4 { font-size:.92rem; margin:20px 0 7px; }
+p { margin:0 0 12px; }
+ol.do, ul.do { margin:0 0 13px; padding-left:20px; }
+ol.do li, ul.do li { margin-bottom:12px; }
+ol.do > li:last-child { margin-bottom:22px; }
+code { background:var(--rail); border:1px solid var(--line); border-radius:5px; padding:1px 5px;
+       font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace; }
 .note { background:var(--warn-bg); border:1px solid var(--warn-line); color:var(--warn-fg);
-        border-radius:12px; padding:16px 20px; margin:20px 0; font-size:.95rem; }
-#log { font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap;
-       margin-top:16px; max-height:280px; overflow-y:auto; }
+        border-radius:12px; padding:14px 17px; margin:0 0 16px; font-size:.92rem; }
+.note p:last-child { margin-bottom:0; }
+.qrbox { display:flex; justify-content:center; gap:26px; margin:0 0 18px; flex-wrap:wrap; align-items:center; }
+.qr { border-radius:12px; background:var(--brand); padding:9px; display:block; }
+.qrbox figure { margin:0; display:flex; flex-direction:column; align-items:center; gap:9px; }
+.qrbox figcaption { color:var(--muted); font-size:.78rem; }
+
+/* iPhone 17 mock. Drawn rather than a screenshot so it stays sharp, follows
+   the page theme, and can't go stale — the screenshot it stands in for is of
+   a UI that is still changing. Swap the .screen contents for an <img> later. */
+/* iPhone 17 frame around a real screenshot.
+   The bezel is the only part that follows the theme — it lightens in dark
+   mode, or a near-black frame disappears into the sheet. The screen keeps
+   whatever the screenshot is, because a photograph of a device shouldn't
+   invert with the page.
+   To swap the image: replace docs/app-screen.png with a screenshot from an
+   iPhone 17 Pro (1206×2622). Any 0.46 aspect ratio works; the frame crops
+   nothing. Don't draw a Dynamic Island here — the screenshot already has one. */
+.phone { --bezel:#101215; width:162px; border:5px solid var(--bezel); border-radius:28px;
+         padding:3px; background:var(--bezel); box-shadow:0 10px 26px rgba(0,0,0,.30); }
+:root[data-theme="dark"] .phone { --bezel:#3b434e; }
+.screen { position:relative; aspect-ratio:1206/2622; background:#f2f2f7; border-radius:24px;
+          overflow:hidden; }
+.screen img { display:block; width:100%; height:100%; object-fit:cover; }
+
+/* One disclosure per overlay rather than a scatter of them. Kept quiet — it is
+   a safety net, not a step, and shouldn't compete with the thing to do next. */
+details.trouble { border-top:1px solid var(--line); padding:13px 0 2px; margin:20px 0 0; }
+details.trouble summary { cursor:pointer; font-size:.88rem; color:var(--muted); list-style:none; }
+details.trouble summary::-webkit-details-marker { display:none; }
+details.trouble summary::before { content:"＋ "; font-weight:600; }
+details.trouble[open] summary::before { content:"－ "; }
+details.trouble[open] summary { margin-bottom:12px; color:var(--fg); }
+details.trouble dt { font-weight:600; font-size:.92rem; margin:14px 0 3px; }
+details.trouble dt:first-of-type { margin-top:0; }
+details.trouble dd { margin:0; color:var(--muted); font-size:.92rem; }
+
+.tbl { overflow-x:auto; margin-bottom:14px; }
+table { border-collapse:collapse; width:100%; font-size:.91rem; }
+th, td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top; }
+td:first-child { white-space:nowrap; font-weight:500; }
+.rowbtns { display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 14px; }
+ol.do .rowbtns { margin:12px 0 18px; }
+/* The button carries its own progress, so there is no status panel to place. */
+.toast { display:flex; align-items:center; gap:7px; margin:10px 0 0; font-size:.88rem;
+         font-weight:500; color:var(--muted); }
+.toast.ok { color:var(--ok); }
+.toast.bad { color:var(--bad); }
+/* Hangs off the step it modifies rather than pretending to be another one. */
+.optional { margin:7px 0 0; font-size:.86rem; color:var(--muted); }
+.nextup { margin:10px 0 0; font-size:.88rem; font-weight:500; color:var(--ok); }
+.prog { height:5px; border-radius:3px; background:var(--line); overflow:hidden; margin:2px 0 4px;
+        max-width:320px; }
+.prog span { display:block; height:100%; width:0; border-radius:3px; background:var(--brand);
+             transition:width .18s ease; }
+/* The last phase — pm install on the device — reports nothing, so the bar
+   stripes instead of pretending to know. */
+.prog.busy span { width:100% !important; background:
+  repeating-linear-gradient(115deg, var(--brand) 0 10px, rgba(255,232,0,.35) 10px 20px);
+  animation:prog-slide .7s linear infinite; }
+@keyframes prog-slide { from { background-position:0 0; } to { background-position:28px 0; } }
+.err { margin:9px 0 0; font-size:.88rem; color:var(--bad); }
+.linky { background:none; border:0; padding:0; margin:6px 0 0; color:var(--muted);
+         font-size:.83rem; text-decoration:underline; text-underline-offset:2px; cursor:pointer; }
+.linky:hover { color:var(--fg); }
+#connect-log { margin-top:14px; }
+#connect-log .log { height:auto; max-height:150px; overflow-y:auto; }
+#connect-log .log > div > div { display:block; }
+/* Once the device is picked this step is finished: green, and switched off so
+   the only thing left to do is read the next one. */
+#connect.done, #install.done { background:transparent; color:var(--ok);
+                box-shadow:inset 0 0 0 1.5px currentColor; }
+#connect.done:disabled, #install.done:disabled { opacity:1; cursor:default; }
+#install-log { margin-top:14px; }
+#install-log .log { height:auto; max-height:150px; overflow-y:auto; }
+#install-log .log > div > div { display:block; }
+
+/* ---------- Wizard ---------- */
+.stepper { display:flex; list-style:none; margin:14px 0 20px; padding:0; gap:6px; }
+.stepper li { flex:1; display:flex; align-items:center; gap:7px; cursor:pointer;
+              font-size:.74rem; color:var(--muted); white-space:nowrap; }
+/* A rule between each pill, so the four read as one track rather than four
+   loose dots. Grows to fill whatever space the labels leave. */
+.stepper li::after { content:""; flex:1; min-width:10px; height:2px; margin-left:3px;
+                     border-radius:2px; background:var(--line); transition:background .25s ease; }
+.stepper li:last-child { flex:none; }
+.stepper li:last-child::after { display:none; }
+.stepper li.done::after { background:rgba(255,232,0,.5); }
+.stepper li span { width:22px; height:22px; border-radius:50%; flex:none; display:flex;
+                   align-items:center; justify-content:center; font-size:.72rem; font-weight:600;
+                   background:var(--line); color:var(--muted); }
+.stepper li.done span { background:rgba(255,232,0,.28); color:var(--fg); }
+.stepper li.on span { background:var(--brand); color:var(--ink); }
+.stepper li.on { color:var(--fg); font-weight:600; }
+@media (max-width:560px) {
+  /* Labels don't fit four across on a phone; the numbers still carry position. */
+  .stepper li { flex:none; } .stepper li:not(.on) { font-size:0; gap:0; }
+  .stepper { gap:10px; justify-content:center; }
+}
+.wsteps { position:relative; }
+/* Measured off-screen so wrapping matches the real column width. */
+.wstep.measuring { position:absolute; top:0; left:0; right:0; visibility:hidden; }
+.wstep { min-height:236px; }
+.demo { margin:0 0 14px; display:flex; justify-content:center; }
+.demo img { display:block; border-radius:12px; max-width:100%; height:auto; }
+/* Steps used to swap instantly, which read as a flicker rather than movement.
+   Slide in from whichever side you came from, so the direction of travel is
+   visible. */
+@keyframes wstep-fwd { from { opacity:0; transform:translateX(10px); } to { opacity:1; transform:none; } }
+@keyframes wstep-back { from { opacity:0; transform:translateX(-10px); } to { opacity:1; transform:none; } }
+.wstep.enter-fwd  { animation:wstep-fwd .2s ease both; }
+.wstep.enter-back { animation:wstep-back .2s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .wstep.enter-fwd, .wstep.enter-back { animation:none; }
+}
+.wizfoot { display:flex; justify-content:space-between; gap:10px;
+           border-top:1px solid var(--line); margin-top:20px; padding-top:16px; }
+.wizfoot button:disabled { opacity:.35; cursor:not-allowed; }
+.console { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:0 0 14px; }
+.console h5 { font-size:.72rem; letter-spacing:.09em; text-transform:uppercase; color:var(--muted);
+              margin:0 0 5px; font-weight:600; }
+.console h5 + div { margin-bottom:12px; }
+.console > :last-child { margin-bottom:0; }
+#log, #log2 { font:12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap; }
+/* Collapsed, the log shows only the line that just happened, so the panel
+   can't grow and shove the rest of the step down the sheet. Expanded, it is
+   the full history it always was. */
+.console .log { height:21px; overflow:hidden; }
+.console.open .log { height:auto; max-height:170px; overflow-y:auto; }
+/* .log wraps the element the installer appends into, so the lines are its
+   grandchildren — hide all but the newest while collapsed. */
+.console:not(.open) .log > div > div:not(:last-child) { display:none; }
+.console .head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.console .more { background:none; border:0; padding:2px; color:var(--muted); cursor:pointer;
+                 display:flex; align-items:center; }
+.console .more svg { transition:transform .18s ease; }
+.console.open .more svg { transform:rotate(180deg); }
+.console .more:hover { color:var(--fg); }
 .ok { color:var(--ok); } .bad { color:var(--bad); } .dim { color:var(--muted); }
-code { background:var(--card); border:1px solid var(--line); border-radius:5px; padding:1px 6px;
-       font:13px ui-monospace,SFMono-Regular,Menlo,monospace; }
-footer { border-top:1px solid var(--line); margin-top:56px; padding-top:20px; color:var(--muted); font-size:.87rem; }
+.next { border-top:1px solid var(--line); margin-top:20px; padding-top:16px; text-align:right; }
+
+footer { border-top:1px solid var(--line); margin-top:46px; padding:22px 0 60px;
+         color:var(--muted); font-size:.85rem; text-align:center; }
+footer p { margin:0 0 6px; }
 </style>
 </head>
 <body>
+
 <div class="wrap">
 
-<div class="mark">
-  <svg width="40" height="40" viewBox="0 0 1024 1024" aria-hidden="true">
-    <path fill="none" stroke="#111111" stroke-width="50" stroke-linecap="round"
-      d="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z"/>
-    <path fill="#111111" stroke="#111111" stroke-width="19.55" stroke-linecap="round"
-      d="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z"/>
-  </svg>
+  <nav class="topnav">
+    <button class="ghost icon-only" id="theme" type="button" aria-label="Switch to dark mode">
+      <svg class="t-moon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      <svg class="t-sun" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6.3 6.3 4.8 4.8M19.2 19.2l-1.5-1.5M17.7 6.3l1.5-1.5M4.8 19.2l1.5-1.5"/></svg>
+    </button>
+    <button class="ghost" data-open="m-help">Troubleshooting</button>
+    <a class="btn ghost" href="https://github.com/albertjfoo/sendpin">Contribute on GitHub ↗</a>
+  </nav>
+
+  <header class="hero">
+    <div class="mark">
+      <svg width="52" height="52" viewBox="0 0 1024 1024" aria-hidden="true">
+        <path fill="none" stroke="#111111" stroke-width="50" stroke-linecap="round"
+          d="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z"/>
+        <path fill="#111111" stroke="#111111" stroke-width="19.55" stroke-linecap="round"
+          d="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z"/>
+      </svg>
+    </div>
+    <h1>SendPin</h1>
+    <p class="tagline">Send a location pin from Apple Maps to Karoo&nbsp;2.</p>
+    <ul class="chips">
+      <li>No Wifi/SIM required</li><li>Free &amp; open source</li><li>~5 min setup</li>
+    </ul>
+    <div class="rule"></div>
+  </header>
+
+  <!-- ================= The three steps ================= -->
+  <div class="flow">
+
+    <div class="step live" id="s1">
+      <div class="panel">
+        <span class="num">1</span>
+        <div class="media">
+          <div class="mini">
+            <div class="scr"><img src="app-screen.png" alt="The SendPin app on an iPhone"></div>
+          </div>
+        </div>
+        <!-- "iPhone app" is already the label under this card; repeating it in
+             the button just spends words. The icon is what keeps this from
+             reading as card 2's "Install on Karoo" at a glance. -->
+        <button class="cta" data-open="m-app">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7.5v7"/>
+            <path d="M8.5 11l3.5 3.5L15.5 11"/>
+          </svg>
+          Install App
+        </button>
+      </div>
+    </div>
+
+    <div class="step idle" id="s2">
+      <div class="panel">
+        <span class="num">2</span>
+        <div class="media">
+          <div class="karoo">
+            <div class="scr"><img src="karoo-screen.png" alt="SendPin running on a Karoo 2"></div>
+          </div>
+        </div>
+        <button class="cta" data-open="m-karoo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7.5v7"/>
+            <path d="M8.5 11l3.5 3.5L15.5 11"/>
+          </svg>
+          Install Extension
+        </button>
+      </div>
+    </div>
+
+    <div class="step live" id="s3">
+      <div class="panel">
+        <span class="num">3</span>
+        <div class="media">
+          <div class="pair">
+            <div class="mini">
+              <div class="scr"><img src="maps-screen.png" alt="A place open in Apple Maps"></div>
+            </div>
+            <svg class="arrow" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+                 stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h13"/><path d="M13 6l6 6-6 6"/>
+            </svg>
+            <div class="karoo">
+              <div class="scr"><img src="karoo-pin.png" alt="The same place as a pin on the Karoo"></div>
+            </div>
+          </div>
+        </div>
+        <button class="cta" data-open="m-send">
+          <!-- The send mark lifted straight out of the logo, cropped to just
+               the plane. Same path, so it can never drift from the brand. -->
+          <svg width="13" height="13" viewBox="535 552 230 231" fill="currentColor"
+               stroke="currentColor" stroke-width="19.55" stroke-linecap="round"
+               stroke-linejoin="round" aria-hidden="true">
+            <path d="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z"/>
+          </svg>
+          Send Your First Pin
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section class="feedback">
+    <div class="feedback-copy">
+      <h3>Help shape this</h3>
+      <p>This started as one problem I wanted solved. If there's somewhere you'd like it
+      to grow, leave me a note.</p>
+    </div>
+    <a class="btn cta" href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">Leave a note ↗</a>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ================= Story ================= -->
+  <section class="story">
+    <h2>The story behind SendPin</h2>
+
+    <!-- A GIF rather than a video: it plays on its own with nothing to press. -->
+    <figure class="clip">
+      <img src="story.gif" width="960" height="540" loading="lazy" decoding="async"
+           alt="A place open in Apple Maps on a phone, next to a Karoo 2">
+    </figure>
+    <p>Often when I go on a ride, especially somewhere I don't know well, I look up a
+    café or somewhere to eat on my phone. Even when I have a set route, I usually don't
+    have that destination picked in advance; I just find a spot as I'm rolling through a
+    town.</p>
+    <p>Which leaves me riding one-handed with my phone out, or trying to memorise the
+    route and inevitably pulling my phone back out to check.</p>
+    <p>Meanwhile I have a bike computer I specifically bought for navigation. It's great,
+    but its search experience will never match what I get on my phone.</p>
+    <p>So what I wanted was simple: look up a place on my phone, send it to my bike
+    computer, and let the Karoo take it from there.</p>
+    <p>To be clear, this is <strong>already a solved problem</strong> on the Karoo 3,
+    Garmin and Wahoo, via their companion apps. Just not on the Karoo 2.</p>
+
+    <h3>Why I built it</h3>
+    <p>I thought it would be a fun project, given how good the AI tooling has got, and
+    because doing it over Bluetooth Low Energy seemed like an interesting challenge.</p>
+    <p>I should caveat all of this: <strong>I'm not a software engineer.</strong> I work
+    in tech, but I was focused far more on <em>what</em> I wanted to solve than on
+    <em>how</em> to solve it. At the end of the day, all that's happening is an iOS app
+    sending a message over Bluetooth — much like your power meter does — carrying a
+    latitude and longitude, and your Karoo reading it.</p>
+    <p>Given how niche this is, how much more I add to it is TBD. As of right now, it
+    simply solves what I originally intended. If you have ideas or feedback, I'd love to
+    hear them — <a href="https://github.com/albertjfoo/sendpin/issues">open an issue</a>.</p>
+  </section>
+
+  <footer>
+    <p>Installs SendPin <strong id="ver">0.1</strong>. Tested on a Karoo 2 running firmware
+    <code>1.613.2351.12</code>; other firmware is unverified. MIT licensed.</p>
+    <p>Not affiliated with or endorsed by Hammerhead or SRAM.</p>
+  </footer>
 </div>
 
-<h1>Install SendPin on your Karoo&nbsp;2</h1>
-<p class="tagline">Straight from this page. No adb, no terminal, no downloads.</p>
+<!-- ================= Overlays ================= -->
 
-<div id="unsupported" class="note" hidden>
-  <strong>This browser can't do it.</strong> Installing needs WebUSB, which only
-  Chromium browsers support — Chrome, Edge or Opera, on a computer or an Android
-  phone. Safari and every iPhone browser are out, because Apple doesn't implement
-  WebUSB. You can still
-  <a href="https://github.com/albertjfoo/sendpin#installing">install with adb</a>.
-</div>
+<dialog id="m-app"><div class="sheet">
+  <div class="sheet-top"><h2>Get the iPhone app</h2><button class="x" data-close>✕</button></div>
+  <!-- Says "coming" rather than "scan this", because the QR is a placeholder and
+       does not resolve. Without that, the code is an invitation to try something
+       that cannot work. -->
+  <p class="lede">Coming to the App Store — requires iOS 17 or later.</p>
 
-<h2>First, on the Karoo</h2>
-<ol>
-  <li>Settings → About → tap the build number seven times</li>
-  <li>Go back, open <strong>Developer options</strong>, turn on <strong>USB debugging</strong></li>
-  <li>Plug the Karoo into this computer with a USB cable</li>
-</ol>
-<p class="dim">Android won't let anything install over USB without that, and there's no way around it from here.</p>
+  <div class="qrbox">
+    <figure>
+      <svg class="qr" id="qr" width="150" height="150" viewBox="0 0 116 116" aria-hidden="true"></svg>
+    </figure>
+    <figure>
+      <div class="phone">
+        <div class="screen">
+          <img src="app-screen.png" alt="The SendPin app on an iPhone" loading="lazy">
+        </div>
+      </div>
+    </figure>
+  </div>
 
-<h2>Then</h2>
-<div class="card">
-  <button id="connect">Connect to Karoo</button>
-  <button id="install" disabled>Install SendPin</button>
-  <div id="log" class="dim">Not connected yet.</div>
-</div>
+  <details class="trouble">
+    <summary>Troubleshooting</summary>
+    <dl>
+      <dt>SendPin isn't in my share sheet</dt>
+      <dd>Scroll the row of app icons to the end, tap <strong>More</strong>, and switch
+      SendPin on. iOS often doesn't surface a newly installed share extension until you
+      enable it once.</dd>
+      <dt>The share sheet shows SendPin but nothing happens</dt>
+      <dd>Check Bluetooth is on and that you granted SendPin permission to use it. The
+      share card needs its own permission — it doesn't inherit the app's.</dd>
+      <dt>I can't find the app to open</dt>
+      <dd>You rarely need to. Sending happens entirely from the Maps share sheet; the app
+      itself is only for troubleshooting.</dd>
+    </dl>
+  </details>
 
-<p>Watch the Karoo's screen after connecting — it'll ask whether to allow USB
-debugging from this computer. Tick <em>always allow</em> and accept.</p>
+  <div class="next"><button class="dark" data-next="m-karoo">Next: Karoo extension →</button></div>
+</div></dialog>
 
-<h2>After it installs</h2>
-<ol>
-  <li>Open <strong>SendPin</strong> from the Karoo's main menu</li>
-  <li>Grant location permission when it asks — Android returns no Bluetooth scan
-      results without it, and the extension will look healthy while finding nothing</li>
-  <li>Check the status line says <strong>listening</strong></li>
-</ol>
+<dialog id="m-karoo"><div class="sheet">
+  <div class="sheet-top"><h2 id="k-title">Install Karoo Extension</h2><button class="x" data-close>✕</button></div>
 
-<footer>
-  <p><a href="https://github.com/albertjfoo/sendpin">SendPin on GitHub</a> · MIT licensed</p>
-  <p>Not affiliated with or endorsed by Hammerhead or SRAM.</p>
-</footer>
+  <!-- Four screens rather than one long page. The install is the only part of
+       SendPin where the reader has to do things in order on two devices at
+       once, so it gets one instruction at a time. -->
+  <ol class="stepper" id="k-steps">
+    <li data-go="1"><span>1</span>USB debugging</li>
+    <li data-go="2"><span>2</span>Connect</li>
+    <li data-go="3"><span>3</span>Install</li>
+    <li data-go="4"><span>4</span>Permission</li>
+  </ol>
 
-</div>
+  <div class="wsteps" id="k-body">
+  <section class="wstep" data-step="1">
+    <div class="note" id="unsupported" hidden>
+      <p><strong>You'll need a computer for this.</strong> Installing talks to the Karoo
+      over USB, which only works in Chrome, Edge or Opera on a computer. Come back on one
+      — or <a href="https://github.com/albertjfoo/sendpin#installing">use adb</a>.</p>
+    </div>
+    <figure class="demo">
+      <picture>
+        <source media="(prefers-reduced-motion: reduce)" srcset="usb-debugging-still.png">
+        <img class="anim" src="usb-debugging.gif" width="199" height="300" decoding="async"
+             alt="Karoo screens: Settings, About, tapping the build number seven times, then Developer options with USB debugging switched on"
+             onerror="this.onerror=null; this.src='usb-debugging-still.png';">
+      </picture>
+    </figure>
+    <ol class="do">
+      <li><strong>Settings → About</strong>, tap the build number seven times</li>
+      <li>Back, then <strong>Developer options</strong> → <strong>USB debugging</strong></li>
+    </ol>
+  </section>
+
+  <section class="wstep" data-step="2" hidden>
+    <ol class="do">
+      <li>Plug the Karoo into your computer</li>
+      <li>Hit the button and pick the Karoo from the browser's list
+        <div class="rowbtns"><button id="connect" class="cta">Connect to Karoo</button></div>
+        <!-- Failures need somewhere to live now that the log is hidden. The raw
+             lines are still kept, one click away, because that is what people
+             paste into an issue. -->
+        <p class="err" id="connect-err" hidden></p>
+      </li>
+      <li>On the Karoo, accept <strong>Allow USB debugging?</strong> and tick
+          <strong>always allow</strong>. Keep its screen awake, or the prompt never appears.
+        <p class="toast" id="auth-status" hidden></p>
+        <p class="nextup" id="auth-next" hidden>Move to the next step — 3. Install</p>
+        <button class="linky" id="connect-details" type="button" hidden>Show details</button>
+      </li>
+    </ol>
+    <div class="console" id="connect-log" hidden>
+      <div class="head"><h5>Details</h5></div>
+      <div class="log"><div id="log" class="dim">Not connected yet.</div></div>
+    </div>
+  </section>
+
+  <section class="wstep" data-step="3" hidden>
+    <ol class="do">
+      <li>Install the SendPin Extension below.
+        <div class="rowbtns"><button id="install" class="cta" disabled>Install SendPin</button></div>
+        <div class="prog" id="install-prog" hidden><span></span></div>
+        <p class="toast" id="install-status" hidden></p>
+        <button class="linky" id="install-details" type="button" hidden>Show details</button>
+      </li>
+    </ol>
+    <div class="console" id="install-log" hidden>
+      <div class="head"><h5>Details</h5></div>
+      <div class="log"><div id="log2" class="dim">Connect first.</div></div>
+    </div>
+  </section>
+
+  <section class="wstep" data-step="4" hidden>
+    <figure class="demo">
+      <picture>
+        <source media="(prefers-reduced-motion: reduce)" srcset="permission-still.png">
+        <img class="anim" src="permission.gif" width="199" height="300" decoding="async"
+             alt="Karoo screens: Extensions, opening SendPin, granting location permission, then the listening toggle"
+             onerror="this.onerror=null; this.src='permission-still.png';">
+      </picture>
+    </figure>
+    <ol class="do">
+      <li>On the Karoo, open <strong>Extensions</strong> from the main menu</li>
+      <li>Open <strong>SendPin</strong></li>
+      <li>Grant <strong>location permission</strong> when it asks</li>
+      <li>Check <strong>Listen for destinations</strong> is on and the status reads
+          <strong>listening</strong></li>
+    </ol>
+  </section>
+  </div>
+
+  <details class="trouble">
+    <summary>Troubleshooting</summary>
+    <dl>
+      <dt>The device is being used by another program</dt>
+      <dd>Something else has claimed it. Close any other tab of this page — reloading
+      isn't enough, the tab keeps its claim — quit Android File Transfer, run
+      <code>adb kill-server</code> if you use adb, then unplug and replug.</dd>
+      <dt>The Karoo never showed the debugging prompt</dt>
+      <dd>Its screen must be awake. If you've connected from this computer before, the
+      prompt is skipped on purpose — the key was saved the first time.</dd>
+      <dt>Nothing appears in the device picker</dt>
+      <dd>USB debugging isn't on, or the cable is power-only. Plenty of USB-C cables carry
+      no data at all; try another.</dd>
+      <dt>Install failed with a signature error</dt>
+      <dd>An older SendPin signed with a different key is installed. Uninstall it on the
+      Karoo first, then install again.</dd>
+    </dl>
+  </details>
+
+  <div class="wizfoot">
+    <button id="k-back" class="ghost">Back</button>
+    <button id="k-next" class="cta">Next</button>
+  </div>
+</div></dialog>
+
+<dialog id="m-send"><div class="sheet">
+  <div class="sheet-top"><h2>Send Your First Pin</h2><button class="x" data-close>✕</button></div>
+  <h4>On the phone</h4>
+  <ol class="do">
+    <li>Find a place in <strong>Apple Maps</strong></li>
+    <li><strong>Share → SendPin</strong></li>
+  </ol>
+  <h4>On the Karoo</h4>
+  <ol class="do">
+    <li>The pin opens, usually within <strong>5 seconds</strong></li>
+    <li><strong>Confirm the pin</strong> — needs a GPS signal</li>
+    <li>Tap <strong>Navigate to</strong></li>
+    <li>Follow the Karoo's turn-by-turn wayfinding
+      <p class="optional">Optional — turn on <strong>rerouting</strong> in the Karoo's
+      navigation settings</p>
+    </li>
+  </ol>
+
+  <details class="trouble">
+    <summary>Troubleshooting</summary>
+    <dl>
+      <dt>Why must the card stay on screen?</dt>
+      <dd>iPhones hide Bluetooth service IDs from non-Apple devices the moment an app goes
+      to the background. That's an iOS rule, not something an app can work around — which
+      is why the card waits for the Karoo rather than dismissing straight away.</dd>
+      <dt>Sending the same place twice does nothing</dt>
+      <dd>The Karoo ignores a destination identical to the last one for about ten seconds,
+      so one send can't open the pin screen twice. Wait a moment and it goes through. The
+      phone can't tell — it says <em>Sent</em> because the Karoo really did read it, and
+      nothing travels back the other way to say it was discarded.</dd>
+      <dt>The pin appears but the Karoo says GPS is required</dt>
+      <dd>Working as intended — it can't route from <em>here</em> without knowing where
+      <em>here</em> is. Take it outside and let it get a fix.</dd>
+      <dt>The Karoo shows the pin but won't route</dt>
+      <dd>You need the offline map region for that area, and the Karoo caps routes at
+      around 500 miles (800 km).</dd>
+      <dt>Nothing happens when I share from Google Maps</dt>
+      <dd>Google Maps isn't supported — its share links don't carry coordinates.</dd>
+    </dl>
+  </details>
+
+  <div class="next"><button class="dark" data-close>Done</button></div>
+</div></dialog>
+
+<dialog id="m-help"><div class="sheet">
+  <div class="sheet-top"><h2>Troubleshooting</h2><button class="x" data-close>✕</button></div>
+  <p class="lede">Start with the status line in SendPin on the Karoo — it names most
+  failures outright.</p>
+  <div class="tbl">
+  <table>
+    <tr><th>Status</th><th>What it means</th></tr>
+    <tr><td>Location permission is required</td><td>Tap to grant it. Nothing works until you do.</td></tr>
+    <tr><td>off</td><td>The <strong>Listen for destinations</strong> switch is off.</td></tr>
+    <tr><td>waiting for Bluetooth</td><td>The Karoo hasn't handed over the radio. It retries; if it persists, restart the Karoo.</td></tr>
+    <tr><td>listening</td><td>The Karoo is fine — check the phone was showing the SendPin card, unlocked.</td></tr>
+  </table>
+  </div>
+  <p>Each step's overlay has its own <strong>Troubleshooting</strong> section covering
+  what goes wrong at that point.</p>
+
+  <h4>How to uninstall</h4>
+  <ul class="do">
+    <li><strong>On the iPhone</strong> — delete SendPin like any other app. The share
+        sheet entry goes with it.</li>
+    <li><strong>On the Karoo</strong> — <strong>Extensions</strong> from the main menu,
+        tap <strong>SendPin</strong> itself rather than its <em>Open</em> button, then
+        <strong>Uninstall</strong>.</li>
+  </ul>
+  <p><a href="https://github.com/albertjfoo/sendpin/issues">Open an issue</a> if you're
+  stuck. Include what the Karoo's status line says and anything red under
+  <strong>Connection details</strong> in the iPhone app — those two together explain
+  almost every failure.</p>
+</div></dialog>
+
+<script>
+/* ---- Theme -----------------------------------------------------------
+   Light by default and deliberately not following the system: most people
+   land here on a laptop in daylight, and the device screenshots are light.
+   The choice is remembered.                                              */
+(() => {
+  const root = document.documentElement;
+  const btn = document.getElementById("theme");
+  const apply = (mode) => {
+    if (mode === "dark") root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+    btn?.setAttribute("aria-label", mode === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  };
+  let mode = "light";
+  try { mode = localStorage.getItem("sendpin-theme") || "light"; } catch {}
+  apply(mode);
+  btn?.addEventListener("click", () => {
+    mode = mode === "dark" ? "light" : "dark";
+    apply(mode);
+    try { localStorage.setItem("sendpin-theme", mode); } catch {}
+  });
+})();
+
+/* ---- Placeholder QR ---------------------------------------------------
+   Deliberately fake: a real code needs the App Store URL, which does not
+   exist yet. Drawn rather than shipped as an image so swapping in the real
+   one later is a straight replacement, and so nothing here pretends to be
+   scannable. Seeded, so it does not shimmer on every reload.            */
+(() => {
+  const svg = document.getElementById("qr");
+  const N = 25, cell = 4, pad = 8;
+  let seed = 20260812;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const on = Array.from({ length: N }, () => Array(N).fill(false));
+  const finder = (r, c) => {
+    for (let i = -1; i < 8; i++) for (let j = -1; j < 8; j++) {
+      const y = r + i, x = c + j;
+      if (y < 0 || x < 0 || y >= N || x >= N) continue;
+      const edge = i === 0 || i === 6 || j === 0 || j === 6;
+      const core = i >= 2 && i <= 4 && j >= 2 && j <= 4;
+      on[y][x] = edge || core;
+    }
+  };
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) on[r][c] = rnd() > 0.52;
+  finder(0, 0); finder(0, N - 7); finder(N - 7, 0);
+  let d = "";
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (on[r][c]) d += `M${pad + c * cell} ${pad + r * cell}h${cell}v${cell}h-${cell}z`;
+  }
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", d);
+  p.setAttribute("fill", "#111111");
+  svg.appendChild(p);
+})();
+
+/* ---- Overlays --------------------------------------------------------- */
+(() => {
+  const open = (id) => document.getElementById(id).showModal();
+  document.querySelectorAll("[data-open]").forEach((b) =>
+    b.addEventListener("click", () => open(b.dataset.open)));
+  document.querySelectorAll("dialog").forEach((d) => {
+    d.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", () => d.close()));
+    // Step through the flow without going back to the page in between.
+    d.querySelector("[data-next]")?.addEventListener("click", (e) => {
+      d.close();
+      open(e.currentTarget.dataset.next);
+    });
+    // Clicking the backdrop closes. The sheet fills the dialog, so any click
+    // landing on the dialog itself was outside the sheet.
+    d.addEventListener("click", (e) => { if (e.target === d) d.close(); });
+  });
+})();
+
+/* ---- Karoo install wizard ---------------------------------------------
+   Four screens with one instruction each. The reader is looking at two
+   devices during this; a single scrolling page made it easy to do step 3
+   while still on step 1.                                                */
+(() => {
+  const dlg = document.getElementById("m-karoo");
+  if (!dlg) return;
+
+  // Collapsed by default so a busy log can't resize the step.
+  dlg.querySelectorAll(".console [data-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const box = btn.closest(".console");
+      const open = box.classList.toggle("open");
+      btn.setAttribute("aria-label", open ? "Collapse log" : "Expand log");
+      if (open) { const l = box.querySelector(".log"); l.scrollTop = l.scrollHeight; }
+    });
+  });
+  const steps = [...dlg.querySelectorAll(".wstep")];
+  const marks = [...dlg.querySelectorAll(".stepper li")];
+  const back = document.getElementById("k-back");
+  const next = document.getElementById("k-next");
+  const body = document.getElementById("k-body");
+  let at = 1, locked = false;
+
+  /* Pin the container to the tallest step. Without this the sheet grew and
+     shrank between steps and the Back/Next buttons moved under the cursor,
+     which was most of what read as "jarring". */
+  function lockHeight() {
+    let max = 0;
+    steps.forEach((s) => {
+      const wasHidden = s.hidden;
+      if (wasHidden) { s.classList.add("measuring"); s.hidden = false; }
+      max = Math.max(max, s.offsetHeight);
+      if (wasHidden) { s.hidden = true; s.classList.remove("measuring"); }
+    });
+    body.style.minHeight = max + "px";
+  }
+
+  /* Restart the animation on every open, so it always begins at the menu
+     rather than wherever the loop happened to be. Re-assigning src is the
+     only reliable way — a GIF keeps playing while its dialog is closed. */
+  function rewindDemo() {
+    dlg.querySelectorAll(".demo img.anim").forEach((img) => {
+      const src = img.src.split("?")[0];
+      img.src = src + "?t=" + Date.now();
+    });
+  }
+
+  function go(n) {
+    const target = Math.min(Math.max(n, 1), steps.length);
+    const dir = target >= at ? "enter-fwd" : "enter-back";
+    at = target;
+    steps.forEach((s) => {
+      const mine = Number(s.dataset.step) === at;
+      s.hidden = !mine;
+      s.classList.remove("enter-fwd", "enter-back");
+      if (mine) {
+        // Reading offsetWidth restarts the animation; without it the class is
+        // added to an element that already has it and nothing plays.
+        void s.offsetWidth;
+        s.classList.add(dir);
+      }
+    });
+    marks.forEach((m, i) => {
+      m.classList.toggle("on", i + 1 === at);
+      m.classList.toggle("done", i + 1 < at);
+    });
+    back.disabled = at === 1;
+    next.textContent = at === steps.length ? "Done" : "Next";
+    dlg.querySelector(".sheet").scrollTop = 0;
+    // Only measurable once the dialog is actually laid out.
+    if (dlg.open && !locked) { lockHeight(); locked = true; }
+  }
+
+  back.addEventListener("click", () => go(at - 1));
+  next.addEventListener("click", () => { if (at === steps.length) dlg.close(); else go(at + 1); });
+  marks.forEach((m) => m.addEventListener("click", () => go(Number(m.dataset.go))));
+
+  // Always land on step 1, however the overlay was opened.
+  dlg.addEventListener("close", () => go(1));
+  document.querySelectorAll('[data-open="m-karoo"],[data-next="m-karoo"]')
+    .forEach((b) => b.addEventListener("click", () => { rewindDemo(); go(1); }));
+  // Wrapping changes with width, so the locked height has to be recomputed.
+  addEventListener("resize", () => { locked = false; if (dlg.open) { lockHeight(); locked = true; } });
+
+  // Let the installer move the reader along when a step actually succeeds.
+  window.karooStep = go;
+  go(1);
+})();
+</script>
 
 <script type="module">
-import { Adb, AdbDaemonTransport } from "https://esm.sh/@yume-chan/adb@2.1.0";
-import AdbWebCredentialStore from "https://esm.sh/@yume-chan/adb-credential-web@2.1.0";
-import { AdbDaemonWebUsbDeviceManager } from "https://esm.sh/@yume-chan/adb-daemon-webusb@2.1.0";
+// Tango 3.0. The 2.x path was reconstructed from type definitions and stalled
+// during authentication with no way to see where. 3.0 is what the current
+// documentation actually describes, and it exposes callbacks for each stage of
+// the handshake — including the moment the public key is sent, which is what
+// makes the device show its "Allow USB debugging?" dialog.
+import { Adb, adbDaemonAuthenticate } from "https://esm.sh/@yume-chan/adb@3.0.0-beta.2";
+import {
+  AdbWebCryptoCredentialManager,
+  TangoLocalStorage,
+} from "https://esm.sh/@yume-chan/adb-credential-web@3.0.0-beta.2?deps=@yume-chan/adb@3.0.0-beta.2";
+import { AdbDaemonWebUsbDeviceManager } from "https://esm.sh/@yume-chan/adb-daemon-webusb@3.0.0-beta.2?deps=@yume-chan/adb@3.0.0-beta.2";
 
 const APK_URL = "sendpin.apk";
 const REMOTE = "/data/local/tmp/sendpin.apk";
 
-const logEl = document.getElementById("log");
+const connectLog = document.getElementById("log");
+const installLog = document.getElementById("log2");
 const connectBtn = document.getElementById("connect");
+const connectErr = document.getElementById("connect-err");
+const connectDetails = document.getElementById("connect-details");
+const connectLogBox = document.getElementById("connect-log");
+const authStatus = document.getElementById("auth-status");
+const authNext = document.getElementById("auth-next");
+
+function tick(size = 14) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  for (const [k, v] of Object.entries({ viewBox: "0 0 24 24", width: size, height: size,
+      fill: "none", stroke: "currentColor", "stroke-width": 2.6,
+      "stroke-linecap": "round", "stroke-linejoin": "round", "aria-hidden": "true" }))
+    svg.setAttribute(k, v);
+  const path = document.createElementNS(NS, "path");
+  path.setAttribute("d", "M20 6L9 17l-5-5");
+  svg.appendChild(path);
+  return svg;
+}
+
+/** Item 3's outcome — waiting, connected, or failed — stated in one place. */
+function authState(text, kind = "") {
+  authStatus.className = "toast" + (kind ? " " + kind : "");
+  authStatus.textContent = "";
+  if (kind === "ok") authStatus.appendChild(tick());
+  authStatus.appendChild(document.createTextNode(text));
+  authStatus.hidden = !text;
+  authNext.hidden = kind !== "ok";
+}
+
+/** The button is the status readout, so its label is the progress indicator. */
+function btnState(text, { done = false, busy = false } = {}) {
+  connectBtn.textContent = "";
+  if (done) connectBtn.appendChild(tick(15));
+  connectBtn.appendChild(document.createTextNode(text));
+  connectBtn.classList.toggle("done", done);
+  connectBtn.disabled = busy || done;
+}
+connectDetails?.addEventListener("click", () => {
+  const open = connectLogBox.hidden;
+  connectLogBox.hidden = !open;
+  connectDetails.textContent = open ? "Hide details" : "Show details";
+});
 const installBtn = document.getElementById("install");
+const installStatus = document.getElementById("install-status");
+const installDetails = document.getElementById("install-details");
+const installLogBox = document.getElementById("install-log");
+const installProg = document.getElementById("install-prog");
+
+/** fraction 0–1, or null for "working, but no idea how far". */
+function progress(fraction) {
+  if (fraction === false) { installProg.hidden = true; installProg.classList.remove("busy"); return; }
+  installProg.hidden = false;
+  if (fraction === null) { installProg.classList.add("busy"); return; }
+  installProg.classList.remove("busy");
+  installProg.firstElementChild.style.width = Math.round(fraction * 100) + "%";
+}
+
+/** Same shape as the connect button: the control reports its own progress. */
+function installBtnState(text, { done = false, busy = false } = {}) {
+  installBtn.textContent = "";
+  if (done) installBtn.appendChild(tick(15));
+  installBtn.appendChild(document.createTextNode(text));
+  installBtn.classList.toggle("done", done);
+  installBtn.disabled = busy || done;
+}
+function installState(text, kind = "") {
+  installStatus.className = "toast" + (kind ? " " + kind : "");
+  installStatus.textContent = text;
+  installStatus.hidden = !text;
+}
+installDetails?.addEventListener("click", () => {
+  const open = installLogBox.hidden;
+  installLogBox.hidden = !open;
+  installDetails.textContent = open ? "Hide details" : "Show details";
+});
+const step2 = document.getElementById("s2");
+
+// The key is kept so a returning user is not asked to authorise again.
+const credentialManager = new AdbWebCryptoCredentialManager(
+  new TangoLocalStorage("sendpin-adb-key"),
+  "SendPin installer",
+);
+
 let adb = null;
 
-function log(msg, cls = "") {
+function write(el, msg, cls) {
   const line = document.createElement("div");
   if (cls) line.className = cls;
   line.textContent = msg;
-  if (logEl.classList.contains("dim")) { logEl.textContent = ""; logEl.classList.remove("dim"); }
-  logEl.appendChild(line);
-  logEl.scrollTop = logEl.scrollHeight;
+  if (el.classList.contains("dim")) { el.textContent = ""; el.classList.remove("dim"); }
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
 }
+// Each stage reports into its own pane, so progress on one is not buried under
+// the other's history.
+const log = (msg, cls = "") => write(connectLog, msg, cls);
+const ilog = (msg, cls = "") => write(installLog, msg, cls);
 
+/** Cards dim until they are the thing to do next, as in the flasher this apes. */
+const activate = (step) => { step.classList.remove("idle"); step.classList.add("live"); };
+
+// An iPhone visitor is a common case now that this page is the front door, so
+// the missing-WebUSB path has to read as "not here" rather than as an error.
 if (!("usb" in navigator)) {
   document.getElementById("unsupported").hidden = false;
   connectBtn.disabled = true;
+} else {
+  activate(step2);
 }
 
 connectBtn.addEventListener("click", async () => {
-  connectBtn.disabled = true;
+  connectErr.hidden = true;
+  connectDetails.hidden = true;
+  connectLogBox.hidden = true;
+  connectDetails.textContent = "Show details";
+  authState("");
+  btnState("Choose your Karoo…", { busy: true });
+  // Which item owns a failure depends on how far we got: choosing a device is
+  // step 2's job, everything after it is step 3's.
+  let picked = false;
+  let device = null;
   try {
-    log("Asking for a device…");
     const manager = AdbDaemonWebUsbDeviceManager.BROWSER;
-    if (!manager) throw new Error("WebUSB unavailable");
+    if (!manager) throw new Error("WebUSB unavailable in this browser");
 
-    const device = await manager.requestDevice();
-    if (!device) { log("No device chosen.", "bad"); connectBtn.disabled = false; return; }
+    log("Asking for a device…");
+    device = await manager.requestDevice();
+    if (!device) {
+      log("No device chosen.", "bad");
+      btnState("Connect to Karoo");
+      return;
+    }
+    picked = true;
+    btnState("Karoo selected", { done: true });
+    authState("Waiting for you to accept on the Karoo…");
 
-    log(`Found ${device.serial}. Connecting…`);
+    log(`Found ${device.serial}. Claiming the USB interface…`);
     const connection = await device.connect();
+    log("Interface claimed.");
 
-    // Blocks until the Karoo's "Allow USB debugging?" prompt is accepted, so
-    // say what is happening rather than appearing to hang.
-    log("Check the Karoo — accept the USB debugging prompt.");
-    const transport = await AdbDaemonTransport.authenticate({
+    const transport = await adbDaemonAuthenticate({
       serial: device.serial,
       connection,
-      credentialStore: new AdbWebCredentialStore("SendPin installer"),
+      credentialManager,
+      // These are the diagnostics the 2.x path could not give us.
+      onKeyLoadError: (e) => log(`Key load error: ${e.message}`, "bad"),
+      onSignatureAuthentication: () => log("Checking whether this computer is already trusted…"),
+      onSignatureRejected: () => log("Not trusted yet — sending this computer's key."),
+      // No button change here — the reader has already been sent to step 3.
+      onPublicKeyAuthentication: () => log("Look at the Karoo and accept the prompt.", "ok"),
     });
 
     adb = new Adb(transport);
     log("Connected.", "ok");
+    authState("Connected", "ok");
     installBtn.disabled = false;
+    installLog.textContent = "Ready to install.";
+    installState("");
   } catch (err) {
     log(`Could not connect: ${err.message}`, "bad");
-    connectBtn.disabled = false;
+    // Hand the interface back, or every later attempt — including adb — sees
+    // nothing at all, which looks exactly like "the Karoo never prompted".
+    try {
+      await device?.raw?.close?.();
+      log("Released the USB device — you can try again.", "dim");
+    } catch {
+      log("Could not release the device. Close this tab and reopen it.", "dim");
+    }
+    if (picked) {
+      // The Karoo was chosen but never agreed — that is step 3's failure, and
+      // the button stays truthful about what it did achieve.
+      authState(`Couldn't connect: ${err.message}`, "bad");
+    } else {
+      connectErr.textContent = err.message;
+      connectErr.hidden = false;
+      connectBtn.classList.remove("done");
+      btnState("Connect to Karoo");
+    }
+    connectDetails.hidden = false;
   }
 });
 
 installBtn.addEventListener("click", async () => {
-  installBtn.disabled = true;
+  installState("");
+  installDetails.hidden = true;
+  installLogBox.hidden = true;
+  installDetails.textContent = "Show details";
+  installBtnState("Fetching…", { busy: true });
   try {
-    log("Fetching the app…");
+    ilog("Fetching the app…");
+    progress(0);
     const res = await fetch(APK_URL);
     if (!res.ok) throw new Error(`could not download the app (${res.status})`);
-    const bytes = new Uint8Array(await res.arrayBuffer());
-    log(`Got ${(bytes.length / 1048576).toFixed(1)} MB.`);
+
+    // Read the body in chunks so the download can be reported. Content-Length
+    // is absent behind some proxies, in which case there is nothing to divide
+    // by and the bar stays indeterminate for this phase.
+    const total = Number(res.headers.get("content-length")) || 0;
+    const reader = res.body.getReader();
+    const parts = [];
+    let received = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      parts.push(value);
+      received += value.length;
+      progress(total ? (received / total) * 0.35 : null);
+    }
+    const bytes = new Uint8Array(received);
+    let at = 0;
+    for (const part of parts) { bytes.set(part, at); at += part.length; }
+    ilog(`Got ${(bytes.length / 1048576).toFixed(1)} MB.`);
 
     // Push then `pm install`, deliberately — not the streaming session API.
     // The Karoo 2 runs Android 8.1, which predates it; that is exactly where
-    // other browser-based installers fail, silently, at 100%.
-    log("Copying to the Karoo…");
-    const sync = await adb.sync();
-    try {
-      await sync.write({
-        filename: REMOTE,
-        file: new ReadableStream({
-          start(controller) { controller.enqueue(bytes); controller.close(); },
-        }),
-      });
-    } finally {
-      await sync.dispose();
-    }
-    log("Copied.");
+    // Tango's own installer fails here, silently, at 100%.
+    // 3.0 renamed all of this: sync is a property rather than a method, the
+    // options are path/readable rather than filename/file, and there is no
+    // session to dispose.
+    installBtnState("Copying to the Karoo…", { busy: true });
+    ilog("Copying to the Karoo…");
+    // pull() hands over one chunk at a time as Tango consumes them, so the
+    // count reflects bytes actually written rather than bytes handed over.
+    const CHUNK = 64 * 1024;
+    let sent = 0;
+    await adb.sync.write({
+      path: REMOTE,
+      readable: new ReadableStream({
+        pull(c) {
+          if (sent >= bytes.length) { c.close(); return; }
+          const end = Math.min(sent + CHUNK, bytes.length);
+          c.enqueue(bytes.subarray(sent, end));
+          sent = end;
+          progress(0.35 + (sent / bytes.length) * 0.55);
+        },
+      }),
+    });
+    ilog("Copied.");
 
-    log("Installing…");
-    const out = await adb.subprocess.noneProtocol.spawnWaitText(
-      `pm install -r ${REMOTE}`,
-    );
-    const text = (typeof out === "string" ? out : out?.stdout ?? "").trim();
-    log(text || "(no output)");
+    // spawn() returns something both awaitable and waitable; .wait().toString()
+    // collects the combined stdout and stderr as text.
+    installBtnState("Installing…", { busy: true });
+    progress(null);   // pm install gives no signal until it returns
+    ilog("Installing…");
+    const out = await adb.subprocess.noneProtocol
+      .spawn(`pm install -r ${REMOTE}`)
+      .wait()
+      .toString();
+    const text = String(out ?? "").trim();
+    ilog(text || "(no output)");
 
     if (/success/i.test(text)) {
-      log("Installed. Open SendPin on the Karoo and grant location permission.", "ok");
+      ilog("Installed.", "ok");
+      progress(false);
+      installBtnState("Installed", { done: true });
+      installState("Move to the next step — 4. Permission", "ok");
     } else {
-      log("That does not look like success — see the output above.", "bad");
-      installBtn.disabled = false;
+      ilog("That does not look like success — see the output above.", "bad");
+      progress(false);
+      installBtnState("Install SendPin");
+      installState("The Karoo did not report success", "bad");
+      installDetails.hidden = false;
     }
   } catch (err) {
-    log(`Install failed: ${err.message}`, "bad");
-    installBtn.disabled = false;
+    ilog(`Install failed: ${err.message}`, "bad");
+    progress(false);
+    installBtnState("Install SendPin");
+    installState(`Install failed: ${err.message}`, "bad");
+    installDetails.hidden = false;
   }
 });
+
 </script>
 </body>
 </html>

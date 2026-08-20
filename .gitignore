@@ -13,3 +13,7 @@ karoo/keystore.properties
 *.keystore
 *.jks
 docs/sendpin.apk
+
+# Raw capture off the camera, kept locally. story.gif in docs is the
+# compressed version that actually ships.
+screenshots/R0002560*.gif

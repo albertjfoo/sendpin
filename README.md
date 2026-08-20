@@ -43,33 +43,38 @@ unit. There's no cloud, no account, no internet needed on the Karoo, and the two
 devices never even pair.
 
 ```
-Apple Maps ──share──▶ Shortcut ──▶ SendPin (iPhone)
-                                        │
-                                 Bluetooth LE
-                                        ▼
-                              SendPin (Karoo 2) ──▶ navigation
+Apple Maps ──share──▶ SendPin (iPhone)
+                            │
+                     Bluetooth LE
+                            ▼
+                  SendPin (Karoo 2) ──▶ navigation
 ```
 
 In slightly more detail:
 
-1. A **Shortcut** pulls the latitude, longitude and place name out of the Maps
-   share link and hands them to the iPhone app.
-2. The **iPhone app** starts broadcasting a custom Bluetooth service, with the
-   destination sitting in it as a tiny piece of JSON — about 48 bytes.
+1. Sharing to SendPin hands the app an **MKMapItem** — Apple's own place
+   object, with the latitude, longitude and name already in it. Nothing is
+   parsed out of a URL, so nothing can be misread.
+2. A small card appears over Maps and starts broadcasting a custom Bluetooth
+   service, with the destination sitting in it as a tiny piece of JSON — about
+   48 bytes.
 3. A small **extension on the Karoo** is always listening for that particular
    service. It connects, reads the coordinates, and disconnects. Takes about two
    seconds.
 4. It hands the destination to the Karoo's **own navigation**, which opens its
    normal Map Pin screen — the same one you'd get from dropping a pin by hand.
 
-The phone stops broadcasting as soon as the Karoo has taken the destination.
+The phone stops broadcasting as soon as the Karoo has taken the destination, and
+the card closes itself. You never leave Maps.
 
 ## Installing
 
 1. **Install the iOS app** — *App Store link, coming*
-2. **[Add the Shortcut](https://www.icloud.com/shortcuts/6aacca931a7d41d8b4f7821992f96256)** — adds “Send to Karoo” to the Maps share
-   sheet. Tap the link on your iPhone, review the actions it shows you, and add it.
-3. **Install the Karoo extension** —
+
+   That is the whole phone side. SendPin appears in the Maps share sheet by
+   itself; there is no Shortcut to add.
+
+2. **Install the Karoo extension** —
    [latest release](https://github.com/albertjfoo/sendpin/releases/latest)
 
    This is the most challenging part. With the Karoo plugged in over USB:
@@ -87,15 +92,21 @@ The phone stops broadcasting as soon as the Karoo has taken the destination.
 ## Using it
 
 1. Find a place in **Apple Maps** (Google Maps isn't available yet)
-2. **Share** → **Send to Karoo**
-3. SendPin opens and starts broadcasting — leave it on screen
+2. **Share** → **SendPin**
+3. A card appears over Maps and starts broadcasting — leave it on screen for a
+   second or two
 4. The Karoo beeps and shows the pin, ready to navigate
+
+You never leave Maps, and you never need to open the SendPin app. The app is
+there for setup, for troubleshooting, and to tell you what the Bluetooth side is
+actually doing.
 
 ## Worth knowing
 
-- **Keep the app on screen while sending.** iPhones hide Bluetooth service UUIDs
-  from non-Apple devices the moment an app goes to the background. That's an iOS
-  rule, not something an app can work around.
+- **Keep the card on screen while sending.** iPhones hide Bluetooth service
+  UUIDs from non-Apple devices the moment an app goes to the background. That's
+  an iOS rule, not something an app can work around — which is why the card
+  waits for the Karoo rather than dismissing straight away.
 - **The Karoo needs a GPS fix**, and the relevant offline map region downloaded.
   Indoors you'll get the pin and a "GPS required".
 - **Destinations have to be within range.** The Karoo handles routes up to about
@@ -105,9 +116,9 @@ The phone stops broadcasting as soon as the Karoo has taken the destination.
 
 ## Troubleshooting
 
-**"Send to Karoo" isn't in the share sheet.** The Shortcut either isn't installed
-or isn't enabled for sharing. Scroll to the bottom of the share sheet, tap
-**Edit Actions…**, and switch it on.
+**"SendPin" isn't in the share sheet.** Scroll the row of app icons to the end,
+tap **More**, and switch SendPin on. iOS often doesn't surface a newly installed
+share extension until you enable it once.
 
 **The phone says it sent, but nothing happens on the Karoo.** Open SendPin on the
 Karoo — the status line tells you which of these it is:
@@ -123,15 +134,19 @@ Karoo — the status line tells you which of these it is:
 can't route from *here* to *there* without knowing where *here* is. Take it
 outside and let it get a fix.
 
-**Sending the same place twice does nothing the second time.** Also intended. The
-Karoo ignores a destination identical to the last one for two minutes, so a phone
-left broadcasting doesn't reopen the pin screen over and over. Wait it out, or
-send somewhere else.
+**Sending the same place twice in quick succession does nothing.** Intended, but
+only just. The Karoo ignores a destination identical to the last one for about
+ten seconds, so the repeated sightings within one send can't open the pin screen
+twice. Wait a moment and the same place goes through again.
 
-**Nothing happens at all when you share.** The Shortcut probably built a bad URL.
-Open SendPin on the phone and tap **Connection details** — a red
-`could not parse` line means the Shortcut sent something malformed, usually
-because the place had no coordinates in its Maps link.
+Note the phone can't tell the difference: it reports **Sent** because the Karoo
+genuinely connected and read the waypoint. What it can't know is that the Karoo
+then discarded it. Nothing is sent back the other way.
+
+**The card says nothing picked this up.** The Karoo never connected. Open SendPin
+on the Karoo and check the status line — the table above says what each state
+means. The usual causes are the extension being switched off, or location
+permission never having been granted.
 
 If you report a problem, include what the Karoo's status line says and anything
 red in **Connection details** on the phone. Those two together explain almost
