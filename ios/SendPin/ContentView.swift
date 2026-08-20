@@ -1,297 +1,185 @@
 //
 //  ContentView.swift
-//  sendpin
+//  SendPin
 //
-//  The main screen. Fixed layout: setup, then how to use, then debug. Ticking
-//  the last setup box announces itself in place rather than rearranging the
-//  screen underneath you.
+//  Home: what you've sent, and a way to send it again.
+//
+//  The app used to be a manual — set up, how to use, what is this. The website
+//  explains all of that better, and the share extension does the sending, so
+//  what's left that only the app can do is remember. Hence a list.
 //
 
 import SwiftUI
 
 struct ContentView: View {
+    var peripheral: SendPinPeripheral
 
-    @Bindable var peripheral: SendPinPeripheral
+    @State private var store = SendStore.shared
+    @State private var selected: Place?
+    @State private var sending: Place?
+    @State private var showAddPin = false
+    @State private var showSettings = false
+    @State private var showShare = false
+    @State private var showRecents = false
 
-    @AppStorage(SetupKey.hasSeenWelcome) private var hasSeenWelcome = false
-    @AppStorage(SetupKey.shortcutAdded) private var shortcutAdded = false
-    @AppStorage(SetupKey.extensionInstalled) private var extensionInstalled = false
+    @Environment(\.scenePhase) private var scenePhase
 
-    @State private var showingWelcome = false
-    @State private var showingConnectionDetails = false
+    /// Only the first three; the rest live behind Recents.
+    private var topRecents: [Place] { Array(store.recents.prefix(3)) }
 
-    private var setupComplete: Bool { shortcutAdded && extensionInstalled }
+    /// Pinning is meant to be a shortlist. Eight is the cap, and the grid grows
+    /// a second row only when there is something to put in it.
+    private static let pinLimit = 8
+    private var pins: [Place] { Array(store.pinned.prefix(Self.pinLimit)) }
+
+    /// Four across: three left the discs floating far apart, and the old
+    /// horizontal strip's tighter rhythm was the thing worth keeping.
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 6), count: 4)
 
     var body: some View {
         NavigationStack {
-            List {
-                brandHeader
-                if let state = activeState { statusSection(state) }
-                destinationSection
-
-                // Deliberately a fixed order. Rearranging the screen under
-                // someone the moment they tick the last box is disorienting —
-                // the thing they were looking at moves. Completion is announced
-                // instead, in place.
-                mainCards
-
-                helpSection
+            Group {
+                if store.isEmpty { emptyState } else { list }
             }
-            .animation(.default, value: setupComplete)
+            // Empty, because the mark and the word are one leading item: the
+            // navigation title sits wherever the bar puts it, which left a gap
+            // between the icon and the name that could not be closed.
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if peripheral.isAdvertising {
-                        Button("Stop") { peripheral.stop() }
+                // iOS 26 wraps toolbar items in a glass capsule, which made the
+                // mark look like a button. It is decoration, so drop the
+                // background where the API exists.
+                if #available(iOS 26.0, *) {
+                    ToolbarItem(placement: .topBarLeading) { wordmark }
+                        .sharedBackgroundVisibility(.hidden)
+                } else {
+                    ToolbarItem(placement: .topBarLeading) { wordmark }
+                }
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
+                        .accessibilityLabel("Share SendPin")
+                    Button { showSettings = true } label: { Image(systemName: "gearshape") }
+                        .accessibilityLabel("Settings")
+                }
+            }
+        }
+        // The share extension writes history in another process, so refresh
+        // whenever we come back to the foreground.
+        .onChange(of: scenePhase) { _, phase in if phase == .active { store.load() } }
+        .sheet(item: $selected) { place in
+            PlaceSheet(place: place, store: store) { sending = place }
+        }
+        .sheet(item: $sending) { place in
+            SendingSheet(place: place, peripheral: peripheral)
+        }
+        .sheet(isPresented: $showRecents) {
+            RecentsView(store: store) { sending = $0 }
+        }
+        .sheet(isPresented: $showAddPin) { AddPinView(store: store) }
+        .sheet(isPresented: $showSettings) { SettingsView(peripheral: peripheral) }
+        .sheet(isPresented: $showShare) { ShareAppView() }
+    }
+
+    private var wordmark: some View {
+        HStack(spacing: 7) {
+            AppMark(size: 26)
+            Text("SendPin").font(.headline.weight(.bold)).foregroundStyle(.primary)
+        }
+        // The bar offers a leading item far less width than the name needs and
+        // truncates it to "S". fixedSize makes the text keep its ideal width.
+        .fixedSize()
+        .accessibilityAddTraits(.isHeader)
+    }
+
+    // MARK: - Populated
+
+    // A ScrollView rather than a List. The grouped look is hand-built here,
+    // which costs a few lines and buys two things a List cannot give: a context
+    // menu that belongs to the pin you pressed, and padding that is the same at
+    // the top and the bottom of a card.
+    private var list: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    header("Pinned")
+                    card(insets: EdgeInsets(top: 14, leading: 10, bottom: 14, trailing: 10)) {
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 15) {
+                            ForEach(pins) { place in
+                                PinBubble(place: place,
+                                          onSend: { sending = place },
+                                          onOpen: { selected = place },
+                                          onUnpin: { store.togglePin(place) })
+                            }
+                            if store.pinned.count < Self.pinLimit {
+                                AddPinBubble { showAddPin = true }
+                            }
+                        }
                     }
                 }
-            }
-            .sheet(isPresented: $showingWelcome) {
-                WelcomeView {
-                    hasSeenWelcome = true
-                    showingWelcome = false
-                }
-            }
-            .sheet(isPresented: $showingConnectionDetails) {
-                ConnectionDetailsView(peripheral: peripheral)
-            }
-        }
-        .onAppear {
-            if !hasSeenWelcome { showingWelcome = true }
-        }
-    }
 
-    // MARK: - Header
-    //
-    // Centred masthead, deliberately not a card: no background, no separator,
-    // no chevron. A left-aligned row inside a grouped list reads as something
-    // you can tap, which is exactly what it is not.
-
-    private var brandHeader: some View {
-        Section {
-            VStack(spacing: 10) {
-                AppMark(size: 68)
-                Text("SendPin").font(.title2.weight(.semibold))
-                Text("Send a destination from your iPhone to your Karoo 2.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 20)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 4)
-            .padding(.bottom, 0)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-        }
-    }
-
-    // MARK: - Status
-    //
-    // Only rendered when there is something to say.
-
-    private enum ScreenState {
-        case delivered, sending, notPickedUp, unavailable(String)
-
-        var icon: String {
-            switch self {
-            case .delivered: "checkmark.circle.fill"
-            case .sending: "dot.radiowaves.left.and.right"
-            case .notPickedUp: "questionmark.circle.fill"
-            case .unavailable: "exclamationmark.triangle.fill"
-            }
-        }
-
-        var tint: Color {
-            switch self {
-            case .delivered: .green
-            case .sending: .blue
-            case .notPickedUp, .unavailable: .orange
-            }
-        }
-
-        var title: String {
-            switch self {
-            case .delivered: "Sent to Karoo"
-            case .sending: "Sending…"
-            case .notPickedUp: "Nothing picked this up"
-            case .unavailable: "Bluetooth unavailable"
-            }
-        }
-
-        var detail: String {
-            switch self {
-            case .delivered: "Your Karoo has the destination. Check its screen."
-            case .sending: "Keep this screen open until the Karoo picks it up."
-            case .notPickedUp: "Still broadcasting. Open SendPin on the Karoo and check it says \"listening\"."
-            case .unavailable(let why): why
-            }
-        }
-    }
-
-    private var activeState: ScreenState? {
-        guard peripheral.canAdvertise else { return .unavailable(peripheral.statusText) }
-        if peripheral.isAdvertising {
-            return peripheral.noResponseYet ? .notPickedUp : .sending
-        }
-        if peripheral.readCount > 0 { return .delivered }
-        return nil
-    }
-
-    private func statusSection(_ state: ScreenState) -> some View {
-        Section {
-            HStack(spacing: 14) {
-                Image(systemName: state.icon)
-                    .font(.title2)
-                    .foregroundStyle(state.tint)
-                    .frame(width: 30)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(state.title).font(.headline)
-                    Text(state.detail)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(.vertical, 4)
-        }
-    }
-
-    // MARK: - Destination
-
-    @ViewBuilder
-    private var destinationSection: some View {
-        if peripheral.waypoint != .none {
-            Section("Destination") {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(peripheral.waypoint.name).font(.body.weight(.medium))
-                    Text(peripheral.waypoint.summary)
-                        .font(.footnote.monospaced())
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 2)
-
-                if !peripheral.isAdvertising {
-                    Button("Send again") { peripheral.send(peripheral.waypoint) }
-                }
-            }
-        }
-    }
-
-    // MARK: - Set up and how to use
-    //
-    // Two cards of the same shape. One leads to a checklist, the other to
-    // instructions; neither should look more important than the other by
-    // accident, so they share NavCard.
-
-    /// One section, so the two sit together rather than being separated by a
-    /// full section gap. They are a pair, not two unrelated things.
-    private var mainCards: some View {
-        Section {
-            NavigationLink {
-                SetupChecklistView()
-            } label: {
-                NavCard(
-                    icon: .symbol("checklist"),
-                    title: "Set up",
-                    subtitle: setupComplete
-                        ? "Shortcut and extension installed"
-                        : "Add the Shortcut and Karoo extension",
-                    done: setupComplete,
-                )
-            }
-
-            NavigationLink {
-                HowToUseView()
-            } label: {
-                NavCard(
-                    icon: .asset("SendGlyph"),
-                    title: "How to use",
-                    subtitle: "Share a place from Maps and send it",
-                )
-            }
-        }
-    }
-
-    // MARK: - Help
-
-    private var helpSection: some View {
-        Section {
-            Button { showingConnectionDetails = true } label: {
-                Label("Connection details", systemImage: "wrench.and.screwdriver")
-                    .font(.subheadline)
-            }
-            Button { showingWelcome = true } label: {
-                Label("What is this?", systemImage: "questionmark.circle")
-                    .font(.subheadline)
-            }
-        } header: {
-            Text("Help")
-        }
-    }
-}
-
-// MARK: - Connection details
-
-/// The raw log, kept off the main screen. Still the fastest way to answer
-/// "why didn't that work" when someone reports a problem.
-struct ConnectionDetailsView: View {
-    @Bindable var peripheral: SendPinPeripheral
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    LabeledContent("Bluetooth", value: peripheral.statusText)
-                    LabeledContent("Advertising", value: peripheral.isAdvertising ? "Yes" : "No")
-                    LabeledContent("Reads by Karoo", value: "\(peripheral.readCount)")
-                } footer: {
-                    Text("The raw Bluetooth log. Worth including when reporting a problem.")
-                }
-
-                Section("Log") {
-                    if peripheral.log.isEmpty {
-                        Text("Nothing yet.").foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        header("Recent")
+                        Spacer()
+                        if !store.recents.isEmpty {
+                            Button("See all") { showRecents = true }
+                                .font(.subheadline.weight(.semibold))
+                        }
                     }
-                    // Newest first: the interesting line is the one that just
-                    // happened, and scrolling to the bottom mid-test is awkward
-                    // when you are standing over the bike.
-                    ForEach(peripheral.log.reversed()) { entry in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(entry.text)
-                                .font(.footnote)
-                                .foregroundStyle(entry.level.tint)
-                            Text(entry.date, style: .time)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                    card(insets: EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)) {
+                        VStack(spacing: 0) {
+                            ForEach(Array(topRecents.enumerated()), id: \.element.id) { index, place in
+                                if index > 0 {
+                                    Divider().padding(.leading, 44)
+                                }
+                                PlaceRow(place: place,
+                                         onSend: { sending = place },
+                                         onOpen: { selected = place })
+                            }
                         }
                     }
                 }
             }
-            .navigationTitle("Connection details")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Clear", action: peripheral.clearLog)
-                }
-            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 28)
         }
+        .background(Color(.systemGroupedBackground))
     }
-}
 
-private extension PeripheralLogEntry.Level {
-    var tint: Color {
-        switch self {
-        case .info: .primary
-        case .success: .green
-        case .warning: .orange
-        case .failure: .red
+    private func header(_ title: String) -> some View {
+        Text(title)
+            .font(.title3.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .padding(.leading, 4)
+    }
+
+    private func card<Content: View>(insets: EdgeInsets,
+                                     @ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(insets)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemGroupedBackground),
+                        in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - Empty
+
+    private var emptyState: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 40)
+            AppMark(size: 64)
+            Text("Send Your First Pin")
+                .font(.title3.weight(.bold))
+                .padding(.top, 16)
+            Text("Find a place in Apple Maps, tap Share, then SendPin. Everything you send shows up here, ready to send again.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 6)
+                .padding(.horizontal, 34)
+            Spacer()
         }
     }
 }
