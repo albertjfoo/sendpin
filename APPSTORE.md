@@ -51,7 +51,6 @@ WHAT YOU NEED
 
 • A Hammerhead Karoo 2
 • The free SendPin extension installed on it
-• The SendPin shortcut, to share from Maps
 
 The Karoo extension is a separate free download, and installing it requires a
 computer once. Full instructions are linked from inside the app.

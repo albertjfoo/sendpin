@@ -29,23 +29,7 @@
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>SendPin advertises your destination over Bluetooth so your Karoo 2 can pick it up and start navigating.</string>
 
-	<!-- The Shortcut that receives a share from Maps opens
-	     sendpin://send?lat=…&amp;lng=…&amp;name=… -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLName</key>
-			<string>com.albert.sendpin.url</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>sendpin</string>
-			</array>
-		</dict>
-	</array>
-
-	<key>UILaunchScreen</key>
+<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>

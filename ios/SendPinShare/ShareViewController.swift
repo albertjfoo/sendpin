@@ -2,9 +2,8 @@
 //  ShareViewController.swift
 //  SendPinShare
 //
-//  The share sheet entry. Replaces the Shortcut: installing the app is now
-//  enough to get "SendPin" into Apple Maps' share sheet, with no iCloud link
-//  to tap and no regex for the user to assemble by hand.
+//  The share sheet entry. Installing the app is enough to get "SendPin" into
+//  Apple Maps' share sheet.
 //
 //  This advertises Bluetooth itself rather than handing off to the containing
 //  app. The first attempt did hand off, via extensionContext.open(), and iOS 26

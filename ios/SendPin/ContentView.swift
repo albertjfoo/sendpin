@@ -1,4 +1,4 @@
-//
+// 
 //  ContentView.swift
 //  SendPin
 //
@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var showRecents = false
 
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
 
     /// Only the first three; the rest live behind Recents.
     private var topRecents: [Place] { Array(store.recents.prefix(3)) }
@@ -179,6 +180,11 @@ struct ContentView: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, 6)
                 .padding(.horizontal, 34)
+            Button("Open Apple Maps") {
+                openURL(URL(string: "maps://")!)
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.top, 24)
             Spacer()
         }
     }

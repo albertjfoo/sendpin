@@ -25,16 +25,6 @@ struct SendPinApp: App {
                 .onDisappear {
                     UIApplication.shared.isIdleTimerDisabled = false
                 }
-                .onOpenURL { url in
-                    guard let waypoint = Waypoint(url: url) else {
-                        peripheral.reportBadURL(url)
-                        return
-                    }
-                    // Still honoured for anyone on the old Shortcut.
-                    SendStore.shared.record(name: waypoint.name, subtitle: nil,
-                                            lat: waypoint.lat, lng: waypoint.lng)
-                    peripheral.send(waypoint)
-                }
                 .fullScreenCover(isPresented: .init(
                     get: { !hasSeenWelcome }, set: { if !$0 { hasSeenWelcome = true } })) {
                     FirstRunView { hasSeenWelcome = true }

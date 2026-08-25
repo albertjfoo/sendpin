@@ -9,8 +9,8 @@
 //  across both would couple the share sheet to the Bluetooth payload for no
 //  gain.
 //
-//  This replaces two regexes that lived in a Shortcut, where a typo produced a
-//  literal "[lat]" in the URL and nothing said so until the app rejected it.
+//  Parsing Apple Maps share links in Swift catches coordinate errors immediately
+//  rather than silently producing a bad URL.
 //
 
 import CoreLocation
@@ -90,8 +90,7 @@ struct Destination {
         Waypoint(lat: latitude, lng: longitude, name: name ?? "Dropped pin")
     }
 
-    /// The URL form, still used by the Shortcut and by the checks in Tests/.
-    /// The share extension no longer goes through it — it advertises directly.
+    /// URL form used by the checks in Tests/.
     var sendPinURL: URL? {
         var components = URLComponents()
         components.scheme = "sendpin"

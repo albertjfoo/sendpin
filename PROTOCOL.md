@@ -87,57 +87,6 @@ Target sequence:
    **Unverified (R1).**
 6. `ReleaseBluetooth("sendpin")` — don't hold the radio for a whole ride.
 
-## URL intake (iPhone side)
-
-The Shortcut that receives a Maps share opens:
-
-```
-sendpin://send?lat=51.50072&lng=-0.12462&name=Big%20Ben
-```
-
-Accepted variants: `sendpin:?…` with no host; `lon` or `long` as aliases for
-`lng`; any case of scheme and parameter names. A URL missing `lat` or `lng`, or
-carrying an out-of-range coordinate, is **rejected outright** and reported
-on screen — a partial parse would silently navigate you to null island.
-
-### Apple Maps — works
-
-A Shortcut named *Send To Karoo*, set to receive URLs from the share sheet,
-regexes the coordinates straight out of the shared URL:
-
-```
-(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)     -> group 1 lat, group 2 lng
-[?&](?:name|q)=([^&]+)                -> place name, then + replaced with %20
-```
-
-Deliberately matches any `number,number` pair rather than a named parameter, so
-it survives Apple using `coordinate=`, `ll=` or `sll=`. Verified end to end
-2026-08-06 with Apple's own share URL.
-
-### Google Maps — tabled, and here is why
-
-Google shares an opaque short link with no coordinates in it:
-
-```
-https://maps.app.goo.gl/6ifNBn5C44pAZmYF8
-```
-
-Investigated 2026-08-06; two routes ruled out empirically:
-
-- **Following the redirect** yields `maps.google.com/maps?q=<address>&ftid=<id>`.
-  No lat/lng — just an address string and Google's internal place id.
-- **Scraping the page** is hopeless: 793 KB of JavaScript shell, `<title>` empty,
-  all `og:` meta tags empty, and no coordinate pattern anywhere in the body.
-
-The one surviving idea: if Google's share sheet also passes the place name and
-address as *text*, feed that to Shortcuts' built-in geocoder (`Get Locations
-from Input` → `Get Details of Location`) and skip Google entirely. Untested —
-it needs someone to check what the share actually contains.
-
-Costs to weigh if it is ever picked up: a geocoded address returns Apple's
-coordinates for that address, which may not match Google's pin for a car park
-entrance or an unnamed trailhead; and it needs phone signal at share time.
-
 ## Range limit
 
 The Karoo's own resources carry the string:

@@ -16,8 +16,8 @@ One-tap iPhone → Karoo 2 destination sending. Share a restaurant from Maps on 
 phone, get turn-by-turn on the Karoo — the thing Karoo 3 and modern Wahoos do
 natively and the Karoo 2 doesn't.
 
-- **iOS app** (Swift/CoreBluetooth): receives a Maps share via a Shortcut + custom
-  URL scheme, resolves it to `{lat, lng, name}`, advertises as a BLE peripheral.
+- **iOS app** (Swift/CoreBluetooth): receives a Maps share via the share extension,
+  resolves it to `{lat, lng, name}`, advertises as a BLE peripheral.
   Foreground-only is acceptable.
 - **Karoo extension** (Kotlin, karoo-ext): BLE central, reads the payload, launches
   native Karoo navigation via the same intent Waypoints/CupRoute use.
@@ -175,7 +175,7 @@ pin-drop screen by itself, with nothing touched on the head unit.
 | `RequestBluetooth` holds the radio | ✅ `request ble sendpin` in the coordinator log |
 | `LaunchPinDrop` opens native navigation | ✅ confirmed on screen |
 | Duplicate suppression | ✅ re-reads are ignored for 2 min |
-| Apple Maps → Shortcut → `sendpin://` | ✅ verified with Apple's own share URL |
+| Apple Maps → share extension → send | ✅ verified with Apple's own share URL |
 | Real turn-by-turn navigation | ✅ outdoors, once the Karoo has a GPS fix |
 | Extension screen + off switch on the Karoo | ✅ in the app list |
 | Google Maps sharing | ⏸️ tabled — see PROTOCOL.md |

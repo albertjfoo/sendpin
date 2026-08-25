@@ -37,9 +37,7 @@
 
 		<!--
 		  Only offer SendPin for a single URL or a single piece of text. Without
-		  these limits the extension appears when sharing photos, contacts and
-		  files, which is exactly the clutter the Shortcut caused before its
-		  accepted types were narrowed.
+		  these limits the extension appears when sharing photos, contacts and files.
 		-->
 		<key>NSExtensionAttributes</key>
 		<dict>

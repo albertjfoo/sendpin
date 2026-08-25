@@ -249,13 +249,6 @@ final class SendPinPeripheral: NSObject {
 
     func clearLog() { log.removeAll() }
 
-    /// Surfaced on screen rather than silently dropped — a malformed Shortcut
-    /// URL is the most likely failure once this is wired to Maps, and there is
-    /// no console to check while you are standing over the bike.
-    func reportBadURL(_ url: URL) {
-        append(.failure, "could not parse \(url.absoluteString)")
-        append(.info, "expected sendpin://send?lat=…&lng=…&name=…")
-    }
 }
 
 // MARK: - CBPeripheralManagerDelegate
