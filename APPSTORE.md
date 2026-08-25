@@ -17,9 +17,10 @@ puts a trademark in the name, which is the thing we avoided in the product name.
 ## Subtitle (30 max)
 
 ```
-Destinations to your Karoo 2
+Location pins to your Karoo 2
 ```
-28 characters.
+29 characters. Carries "location pin", the same phrase the app's welcome screen
+and the site's tagline both use, so the three read as one product.
 
 ## Promotional text (170 max, editable without a new build)
 
