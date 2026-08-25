@@ -227,11 +227,14 @@ class MainActivity : Activity() {
             }
         }
 
+        // Nothing is shown while switched off. A "paired with an iPhone" card
+        // used to fill the gap, but it answered a question nobody was asking —
+        // the pairing is still reachable through ⋯ → Forget iPhone, which is
+        // the only thing anyone actually wants to do with it.
         cardSlot.removeAllViews()
         val lastPin = Prefs.lastPin(this)
-        when {
-            enabled && located && lastPin != null -> cardSlot.addView(lastPinCard(lastPin))
-            !enabled && paired                    -> cardSlot.addView(pairedCard())
+        if (enabled && located && lastPin != null) {
+            cardSlot.addView(lastPinCard(lastPin))
         }
 
         // Show ⋯ only when there's something in the menu (i.e. a phone is paired).
@@ -286,41 +289,6 @@ class MainActivity : Activity() {
         row.addView(navigate, LinearLayout.LayoutParams(dp(32), dp(32)))
 
         return wrapWithTopMargin(row, dp(12))
-    }
-
-    private fun pairedCard(): View {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            setPadding(0, dp(12), 0, 0)
-        }
-        val avatar = ImageView(this).apply {
-            setImageResource(R.drawable.ic_sendpin)
-            setColorFilter(INK)
-            background = rounded(CARD, dp(6).toFloat())
-            val pad = dp(6)
-            setPadding(pad, pad, pad, pad)
-        }
-        row.addView(avatar, LinearLayout.LayoutParams(dp(26), dp(26)).apply { rightMargin = dp(9) })
-
-        val textCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        textCol.addView(
-            TextView(this).apply {
-                setText(getString(R.string.paired_label).uppercase())
-                textSize = 8f
-                setTextColor(HINT)
-                letterSpacing = 0.05f
-            },
-        )
-        textCol.addView(
-            TextView(this).apply {
-                setText(getString(R.string.paired_value))
-                textSize = 12f
-                setTextColor(INK)
-            },
-        )
-        row.addView(textCol)
-        return row
     }
 
     // MARK: - Actions

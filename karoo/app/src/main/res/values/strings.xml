@@ -13,8 +13,6 @@
     <string name="status_waiting">Waiting for Bluetooth</string>
 
     <string name="last_pin_label">Last pin</string>
-    <string name="paired_label">Paired with</string>
-    <string name="paired_value">An iPhone</string>
 
     <string name="forget_phone">Forget iPhone</string>
     <string name="forget_title">Forget this iPhone?</string>
