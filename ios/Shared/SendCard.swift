@@ -86,7 +86,7 @@ struct SendCard: View {
                         .foregroundStyle(.green)
                         .scaleEffect(phase == .sent ? 1 : 0.5)
                         .frame(height: statusHeight)
-                    Text("Sent. Check Karoo")
+                    Text("Confirm the pin on your Karoo")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         // Top of its row rather than centred, which closes the
