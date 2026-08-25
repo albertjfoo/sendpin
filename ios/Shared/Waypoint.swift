@@ -29,6 +29,21 @@ struct Waypoint: Codable, Equatable {
         return (try? encoder.encode(self)) ?? Data(#"{"lat":0,"lng":0,"name":"error"}"#.utf8)
     }
 
+    /// The bytes actually sent to the Karoo: the waypoint plus the sending
+    /// phone's ID, so the Karoo can drop pins from any phone but its paired one.
+    ///
+    /// A separate wire struct rather than adding `id` to Waypoint itself —
+    /// Waypoint is the destination, and the identity of who sent it does not
+    /// belong on it. Keys stay sorted so the bytes are stable and hex dumps
+    /// remain comparable. Old Karoo firmware ignores the extra key.
+    func wireData(deviceID: String) -> Data {
+        struct Wire: Encodable { let id: String; let lat: Double; let lng: Double; let name: String }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let wire = Wire(id: deviceID, lat: lat, lng: lng, name: name)
+        return (try? encoder.encode(wire)) ?? encoded
+    }
+
     /// A one-line summary for the on-screen log.
     var summary: String {
         String(format: "%@ (%.5f, %.5f)", name, lat, lng)

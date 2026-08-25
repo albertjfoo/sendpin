@@ -166,7 +166,7 @@ final class SendPinPeripheral: NSObject {
 
         // Already live: swap the served bytes and push to anyone subscribed so
         // they don't have to reconnect for the new destination.
-        servedPayload = destination.encoded
+        servedPayload = destination.wireData(deviceID: DeviceID.current)
         guard let characteristic = waypointCharacteristic, subscriberCount > 0 else { return }
         let delivered = manager?.updateValue(servedPayload,
                                              for: characteristic,
@@ -213,7 +213,7 @@ final class SendPinPeripheral: NSObject {
         // Pin the bytes for the whole advertising session, so a long (blob)
         // read served across several ATT round trips cannot see the payload
         // change underneath it halfway through.
-        servedPayload = waypoint.encoded
+        servedPayload = waypoint.wireData(deviceID: DeviceID.current)
 
         // R5: the advertisement is 31 bytes and a 128-bit UUID eats most of it.
         // Overflow gets pushed to the Apple-only overflow area, where an Android
@@ -366,7 +366,7 @@ extension SendPinPeripheral: CBPeripheralManagerDelegate {
         // response, so the central will fetch it as a series of blob reads with
         // an increasing offset. Ignoring request.offset here would hand back
         // the first chunk over and over and the central would assemble garbage.
-        let payload = servedPayload.isEmpty ? waypoint.encoded : servedPayload
+        let payload = servedPayload.isEmpty ? waypoint.wireData(deviceID: DeviceID.current) : servedPayload
         guard request.offset <= payload.count else {
             peripheral.respond(to: request, withResult: .invalidOffset)
             return
