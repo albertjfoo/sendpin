@@ -254,11 +254,11 @@ class MainActivity : Activity() {
             setColorFilter(INK, android.graphics.PorterDuff.Mode.SRC_IN)
             scaleType = ImageView.ScaleType.FIT_CENTER
             background = circle(YELLOW)
-            val pad = dp(7)
+            val pad = dp(8)
             setPadding(pad, pad, pad, pad)
             setOnClickListener { reopen(pin) }
         }
-        row.addView(navigate, LinearLayout.LayoutParams(dp(32), dp(32)))
+        row.addView(navigate, LinearLayout.LayoutParams(dp(30), dp(30)))
 
         return wrapWithTopMargin(row, dp(12))
     }
