@@ -1,6 +1,6 @@
 # sendpin — risk register
 
-Last updated 2026-08-06. Built on the NUC de-risk session and a review of the
+Last updated 2026-08-25. Built on the NUC de-risk session and a review of the
 karoo-ext source. Supersedes all earlier risk notes.
 
 **2026-08-06 — the iOS-side mitigations are now implemented** (see
@@ -234,6 +234,92 @@ outright. One extra tap on the Karoo.
 Arguably desirable mid-ride (you probably want to confirm before it reroutes you), but
 it does mean "one-tap" is really "one tap on the phone, one confirm on the head unit."
 Set expectations accordingly.
+
+---
+
+## Security and privacy
+
+Numbered separately from R1–R9 because these are a different axis: none of them stop
+the product working, and all of them are **accepted, not open**. They are written down
+because the design makes deliberate tradeoffs that look like oversights if undocumented,
+and the next person to read this code will ask about every one of them.
+
+The threat model throughout: an attacker within Bluetooth range (roughly 10 m, line of
+sight) of a cyclist, during the few seconds per send that the phone actually advertises.
+Nothing here is reachable over the internet — there is no server, no account and no
+network call in either half of the product.
+
+### S1. The link is unencrypted and unbonded, on purpose
+Nothing is paired, nothing is encrypted, and the waypoint characteristic is world-readable
+while advertising. Any BLE central in range can read the destination.
+
+This is a deliberate reversal of the obvious choice. Bonding was tried on 2026-08-06 and
+wedged the Karoo's Bluetooth stack badly enough to need the process restarted, because
+iOS rotated its address mid-pairing (see the `WaypointClient` header comment). The
+encryption that bonding would buy protects a single lat/lng that the rider chose to send
+and is about to be navigated to in public anyway.
+
+**Accepted.** The exposure is one destination, to someone already standing next to you,
+for a couple of seconds. Revisit only if the payload ever carries something that is not
+a destination.
+
+### S2. `DeviceID` is a stable identifier broadcast in the clear
+`ios/Shared/DeviceID.swift` mints 8 random bytes, persists them in the App Group, and
+`Waypoint.wireData` puts them in every payload. It is stable for the life of the install
+and readable by anything that connects.
+
+Tracking surface is genuinely small — it is only observable while advertising, which is
+seconds per send, and it identifies an install rather than a person. It is not the
+`identifierForVendor`, deliberately, so it is not correlatable with any other app.
+
+**Accepted.** Two cheap improvements exist if this ever matters: shorten the advertising
+window further, or rotate the ID whenever the Karoo is re-paired.
+
+### S3. Pairing is trust-on-first-use, and spoofable
+`SendPinExtension.acceptFromPairedPhone()` pairs with the first phone it hears and then
+accepts only that ID. There is no authentication: the ID is a plaintext value in a
+readable characteristic, so anyone who has observed one send can replay that ID and push
+arbitrary destinations to that Karoo.
+
+The feature was never a security control — it exists so two SendPin users at the same
+café do not land pins on each other's head unit, which is a collision problem, not an
+attack. It solves that completely.
+
+The worst outcome of a successful spoof is an unwanted pin-drop dialog on the head unit,
+which the rider must still confirm before anything reroutes (R9 turns out to be a
+mitigation). No silent redirect is possible.
+
+**Accepted.** Real authentication would need a shared secret established out of band —
+a pairing code typed on the Karoo — which is a lot of friction to prevent a prank that
+requires physical proximity and produces a dialog the victim can dismiss.
+
+### S4. The web installer trusts HTTPS and same-origin, and nothing else
+`docs/index.html` fetches `sendpin.apk` from its own origin and pushes it to the Karoo
+over WebUSB, then runs `pm install -r`. There is no signature check or hash pinning in
+the page.
+
+The trust anchor is HTTPS to GitHub Pages plus same-origin: an attacker who could swap
+the APK has already compromised the repository or the host, at which point the page
+serving the check would be compromised too, so a hash in the page proves nothing. The
+APK is signed with the release key, and Android enforces signature continuity on update
+(see `karoo/app/build.gradle.kts`), so a substituted APK cannot masquerade as an update
+to an existing install — it can only fail to install.
+
+**Accepted.** Publishing a checksum in the README would let a careful user verify out of
+band, and costs nothing. Worth doing if the project gets meaningful adoption.
+
+### S5. The extension service is exported without a permission guard
+`android:exported="true"` on `SendPinExtension` is required — the Karoo system
+(`io.hammerhead.appstore`) binds it from another process. But there is no
+`android:permission`, so any app on the head unit could bind it too.
+
+The Karoo is a closed appliance with no app store of consequence and a sideload-only
+install path, so "another malicious app is already on the device" is a scenario where
+this service is far from the weakest link. The bindable surface is one bonus action that
+triggers a BLE read.
+
+**Accepted, low confidence that it matters either way.** If it is ever worth closing,
+a custom signature-level permission is a few lines of manifest.
 
 ---
 
