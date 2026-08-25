@@ -3,12 +3,75 @@
 Self-contained context for continuing on the Mac. Written 2026-08-05 after the
 NUC de-risk session; updated 2026-08-06 on the Mac.
 
-> **Current state (2026-08-06):** working end to end on hardware — share a place
-> from Apple Maps and the Karoo 2 opens its native pin drop and navigates. See
+> **Current state (2026-08-25):** ready to submit to the App Store, blocked on
+> one switch. See [Submitting](#submitting--where-this-stopped-2026-08-25).
+>
+> Working end to end on hardware since 2026-08-06 — share a place from Apple
+> Maps and the Karoo 2 opens its native pin drop and navigates. See
 > [Status](#status--end-to-end-on-hardware-2026-08-06).
 >
 > This file is the developer's notebook: history, dead ends, and the reasoning
 > behind decisions. For what the project *is*, read the README.
+
+## Submitting — where this stopped, 2026-08-25
+
+Everything code-side is done, committed and pushed. `main` is in sync with
+GitHub. **The whole remaining path is gated on making the repo public**, which
+is deliberately left as a human action.
+
+Why that one switch gates so much: GitHub Pages needs a public repo on the free
+plan, and Pages is simultaneously the App Store **support URL**, the target of
+the app's own in-app links (`ios/SendPin/Setup.swift`), the host of the WebUSB
+installer, and the host of `manifest.json` for Karoo auto-update. Nothing
+downstream works until it resolves.
+
+A full history scan for secrets was run on 2026-08-25 and came back clean: no
+sensitive filenames in any commit or tag, no literal passwords (every hit was
+the code *reading* `keystoreProps`), no keystore blobs by magic bytes, and no
+personal paths. The only identifier present is the Apple team ID, which is
+public in every signed binary. **Nothing blocks publishing.**
+
+```
+1. gh repo edit albertjfoo/sendpin --visibility public \
+     --accept-visibility-change-consequences
+2. Settings → Pages → source main, folder /docs
+3. Confirm both load:
+     https://albertjfoo.github.io/sendpin/
+     https://albertjfoo.github.io/sendpin/manifest.json
+4. Archive from main (NOT an older build — the in-app link fix and the
+   tagline change are recent commits), upload, wait for processing
+5. Screenshots on device, 6.9" and 6.5" — see APPSTORE.md for which four
+   and in what order. Send a few real places first so the list is not empty.
+6. App Store Connect record, reserve "SendPin", paste copy from APPSTORE.md
+7. Support URL → the Pages URL. Privacy → Data Not Collected.
+   Review notes → paste from APPSTORE.md; they are the 4.2 defence.
+8. Submit.
+```
+
+### Open, not blocking
+
+- **A fresh Karoo install does not bind until the head unit reboots.**
+  Observed 2026-08-25: `dumpsys activity services app.sendpin` was empty after
+  installing, and the service only appeared after a restart. The site's install
+  flow never says to reboot, so a first-timer can sit on a green dot with
+  nothing running. Confirm on a clean run, then add it to Step 4 on the site.
+- **The status line still lies in one case.** `Prefs.status()` returning null
+  means "watcher has gone quiet", and `MainActivity` reads that optimistically
+  as green *Listening* — so a watcher that never started shows as healthy. That
+  is the same failure the amber work removed, relocated. Fix: treat null while
+  enabled and located as *Starting…*, since a live watcher writes within ~2s.
+- **Karoo auto-update is untested.** It cannot be tested until Pages is live.
+  Once it is: install, bump to `versionCode = 3`, push, then long-press →
+  Update on the head unit. That also answers whether the head unit polls on its
+  own or only checks when asked — currently unknown.
+- **Clean-device first-run test.** Every test so far has run on a phone with
+  history and a Karoo with a prior pairing. Best done just before submitting,
+  on the build being submitted.
+- **awesome-karoo listing** — deliberately held until after dogfooding.
+- **Launch day:** the site's QR code is decorative and resolves to nothing, and
+  the page says "Coming to the App Store". Both need replacing with a real
+  link. So does step 1 of *Get the iPhone app*, which already says "Download
+  SendPin from the App Store".
 
 ## The project
 
