@@ -118,6 +118,14 @@ class MainActivity : Activity() {
             textSize = 15f
             setTextColor(INK)
             isChecked = Prefs.isEnabled(this@MainActivity)
+            fun track(color: Int) = android.graphics.drawable.InsetDrawable(
+                rounded(color, dp(100).toFloat()), 0, dp(8), 0, dp(8),
+            )
+            val trackDrawable = android.graphics.drawable.StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_checked), track(Color.parseColor("#555555")))
+                addState(intArrayOf(), track(Color.parseColor("#BBBBBB")))
+            }
+            setTrackDrawable(trackDrawable)
             setOnCheckedChangeListener { _, checked ->
                 Prefs.setEnabled(this@MainActivity, checked)
                 Prefs.setStatus(this@MainActivity, if (checked) "starting…" else "stopping…")
