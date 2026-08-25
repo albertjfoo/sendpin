@@ -198,9 +198,12 @@ details.trouble summary::-webkit-details-marker { display:none; }
 details.trouble summary::before { content:"＋ "; font-weight:600; }
 details.trouble[open] summary::before { content:"－ "; }
 details.trouble[open] summary { margin-bottom:12px; color:var(--fg); }
-details.trouble dt { font-weight:600; font-size:.92rem; margin:14px 0 3px; }
-details.trouble dt:first-of-type { margin-top:0; }
-details.trouble dd { margin:0; color:var(--muted); font-size:.92rem; }
+/* Shared by the per-step <details> overlays and the consolidated list in the
+   top-level Troubleshooting sheet, so the two never drift apart visually. */
+details.trouble dt, .trouble-dl dt { font-weight:600; font-size:.92rem; margin:14px 0 3px; }
+details.trouble dt:first-of-type, .trouble-dl dt:first-of-type { margin-top:0; }
+details.trouble dd, .trouble-dl dd { margin:0; color:var(--muted); font-size:.92rem; }
+.trouble-dl { margin:0 0 4px; }
 
 .tbl { overflow-x:auto; margin-bottom:14px; }
 table { border-collapse:collapse; width:100%; font-size:.91rem; }
@@ -676,6 +679,38 @@ footer p { margin:0 0 6px; }
     <tr><td><strong>Location needed — tap to grant</strong> — red dot</td><td>Tap it and allow. Android returns no Bluetooth results at all without location permission, so nothing works until you do.</td></tr>
   </table>
   </div>
+
+  <h4>Installing on the Karoo</h4>
+  <dl class="trouble-dl">
+    <dt>The Karoo never showed the debugging prompt</dt>
+    <dd>Its screen must be awake. If you've connected from this computer before, the
+    prompt is skipped on purpose — the key was saved the first time.</dd>
+    <dt>Nothing appears in the device picker</dt>
+    <dd>USB debugging isn't on, or the cable is power-only. Plenty of USB-C cables carry
+    no data at all; try another.</dd>
+    <dt>Install failed with a signature error</dt>
+    <dd>An older SendPin signed with a different key is installed. Uninstall it on the
+    Karoo first, then install again.</dd>
+    <dt>The device is being used by another program</dt>
+    <dd>Something else has claimed it. Close any other tab of this page — reloading
+    isn't enough, the tab keeps its claim — quit Android File Transfer, run
+    <code>adb kill-server</code> if you use adb, then unplug and replug.</dd>
+  </dl>
+
+  <h4>Sending a pin</h4>
+  <dl class="trouble-dl">
+    <dt>Sending the same place twice does nothing</dt>
+    <dd>The Karoo ignores a destination identical to the last one for about ten seconds,
+    so one send can't open the pin screen twice. Wait a moment and let it go through.</dd>
+    <dt>The pin appears but the Karoo says GPS is required</dt>
+    <dd>You will need a GPS signal to know where you currently are. Typically this is
+    because you are indoors.</dd>
+    <dt>The Karoo shows the pin but not the map</dt>
+    <dd>You likely haven't downloaded the map region (e.g. California) for that area,
+    and the Karoo caps routes at around 500 miles (800 km).</dd>
+    <dt>Nothing happens when I share from Google Maps</dt>
+    <dd>Google Maps isn't supported (yet).</dd>
+  </dl>
 
   <h4>How to uninstall</h4>
   <ul class="do">
