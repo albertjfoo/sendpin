@@ -40,7 +40,7 @@ import java.util.UUID
  */
 class WaypointClient(private val context: Context) {
 
-    data class Waypoint(val lat: Double, val lng: Double, val name: String?)
+    data class Waypoint(val lat: Double, val lng: Double, val name: String?, val id: String? = null)
 
     private val adapter: BluetoothAdapter?
         get() = (context.getSystemService(Context.BLUETOOTH_SERVICE)
@@ -279,7 +279,9 @@ class WaypointClient(private val context: Context) {
                 return null
             }
             val name = json.optString("name").takeIf { it.isNotBlank() }
-            Waypoint(lat, lng, name).also { Log.i(TAG, "parsed $it") }
+            // The sending phone's ID, absent on pre-pairing app versions.
+            val id = json.optString("id").takeIf { it.isNotBlank() }
+            Waypoint(lat, lng, name, id).also { Log.i(TAG, "parsed $it") }
         } catch (e: Exception) {
             Log.e(TAG, "unparseable payload: '$text'", e)
             null

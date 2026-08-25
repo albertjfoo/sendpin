@@ -17,6 +17,7 @@ object Prefs {
     private const val KEY_STATUS = "status"
     private const val KEY_LAST_DESTINATION = "lastDestination"
     private const val KEY_LAST_DESTINATION_AT = "lastDestinationAt"
+    private const val KEY_PAIRED_PHONE = "pairedPhone"
 
     fun of(context: Context): SharedPreferences =
         context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
@@ -47,5 +48,24 @@ object Prefs {
             .putString(KEY_LAST_DESTINATION, description)
             .putLong(KEY_LAST_DESTINATION_AT, System.currentTimeMillis())
             .apply()
+    }
+
+    /**
+     * The one phone this Karoo accepts pins from.
+     *
+     * The extension pairs to the first phone it hears and stores its ID here;
+     * every other phone is then ignored, so two SendPin users near each other
+     * do not cross pins. Null means unpaired -- the next phone heard becomes the
+     * pair, which is also what "Forget iPhone" resets it to.
+     */
+    fun pairedPhone(context: Context): String? =
+        of(context).getString(KEY_PAIRED_PHONE, null)
+
+    fun setPairedPhone(context: Context, id: String) {
+        of(context).edit().putString(KEY_PAIRED_PHONE, id).apply()
+    }
+
+    fun clearPairedPhone(context: Context) {
+        of(context).edit().remove(KEY_PAIRED_PHONE).apply()
     }
 }

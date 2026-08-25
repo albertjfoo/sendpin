@@ -141,9 +141,13 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
                         ?: continue
 
                     val waypoint = client.read(device)
-                    val isRepeat = waypoint != null && isDuplicate(waypoint)
-                    if (waypoint != null && !isRepeat) {
-                        navigateTo(waypoint)
+                    // Auto-pair to the first phone, ignore the rest. isDuplicate
+                    // only runs for an accepted pin, so a stranger's pin cannot
+                    // reset the duplicate window.
+                    val accepted = waypoint != null && acceptFromPairedPhone(waypoint)
+                    val isRepeat = accepted && isDuplicate(waypoint!!)
+                    if (accepted && !isRepeat) {
+                        navigateTo(waypoint!!)
                     }
 
                     // Reconnecting every couple of seconds to rediscover a
@@ -152,11 +156,42 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
                     // made status=133 failures more likely. So back off once a
                     // waypoint is known — but only briefly, because the phone
                     // now stops advertising shortly after a read, and a long
-                    // back-off delays noticing the next genuine send.
-                    delay(if (isRepeat) SETTLED_DELAY_MS else RESCAN_DELAY_MS)
+                    // back-off delays noticing the next genuine send. A rejected
+                    // stranger is backed off the same way: it keeps advertising,
+                    // and we do not want to reconnect to it on every pass.
+                    val backOff = waypoint != null && (!accepted || isRepeat)
+                    delay(if (backOff) SETTLED_DELAY_MS else RESCAN_DELAY_MS)
                 }
             } finally {
                 scan?.let { client.stopScan(it) }
+            }
+        }
+    }
+
+    /**
+     * Auto-pair to the first phone heard, then accept only that phone.
+     *
+     * The first pin from any phone claims the pairing; after that, a pin whose
+     * ID does not match is dropped, so two SendPin users near each other do not
+     * land pins on the wrong Karoo. A pin with no ID at all comes from a
+     * pre-pairing app version and is accepted rather than silently lost.
+     *
+     * Cleared by "Forget iPhone", which is also how a reinstalled or new phone
+     * takes over -- a reinstall mints a new ID and would otherwise be ignored.
+     */
+    private fun acceptFromPairedPhone(waypoint: WaypointClient.Waypoint): Boolean {
+        val id = waypoint.id ?: return true
+        val paired = Prefs.pairedPhone(applicationContext)
+        return when (paired) {
+            null -> {
+                Prefs.setPairedPhone(applicationContext, id)
+                Log.i(TAG, "paired with phone $id")
+                true
+            }
+            id -> true
+            else -> {
+                Log.i(TAG, "ignoring pin from unpaired phone $id (paired to $paired)")
+                false
             }
         }
     }
@@ -215,6 +250,10 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
             // iOS hides the service UUID from non-Apple devices the moment the
             // app backgrounds (RISKS.md R3). Say so rather than "failed".
             alert("No destination found", "Open SendPin on your phone and keep it on screen.")
+            return
+        }
+        if (!acceptFromPairedPhone(waypoint)) {
+            alert("Not your phone", "This Karoo is paired to a different phone. Forget it in SendPin to re-pair.")
             return
         }
         navigateTo(waypoint)
