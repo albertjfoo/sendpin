@@ -15,6 +15,7 @@ object Prefs {
 
     private const val KEY_ENABLED = "enabled"
     private const val KEY_STATUS = "status"
+    private const val KEY_STATUS_AT = "statusAt"
     private const val KEY_LAST_DESTINATION = "lastDestination"
     private const val KEY_LAST_DESTINATION_AT = "lastDestinationAt"
     private const val KEY_LAST_LAT = "lastLat"
@@ -32,12 +33,47 @@ object Prefs {
         of(context).edit().putBoolean(KEY_ENABLED, enabled).apply()
     }
 
-    /** A short line the watcher keeps current, so the screen can show what it is doing. */
-    fun status(context: Context): String =
-        of(context).getString(KEY_STATUS, "not started") ?: "not started"
+    // Status values the watcher reports. Constants rather than literals because
+    // the watcher writes them and the screen matches on them, in different files.
+    const val STATUS_LISTENING = "listening"
+    const val STATUS_WAITING = "waiting for Bluetooth"
+    const val STATUS_OFF = "off"
 
+    /**
+     * How long the watcher's note stays believable.
+     *
+     * The watcher rewrites its status every pass, and an idle pass is bounded by
+     * ADAPTER_RECHECK_MS (15s), so a healthy watcher refreshes well inside this.
+     * Three times that leaves room for a slow pass without ever calling a live
+     * watcher dead.
+     */
+    private const val STATUS_STALE_MS = 45_000L
+
+    /**
+     * What the watcher last reported, or null if it has gone quiet.
+     *
+     * Null matters as much as the value. The watcher is a separate service the
+     * system can stop whenever it likes, and a stopped one leaves its last note
+     * frozen in place — without the timestamp the screen would happily show
+     * "listening" from a process that died an hour ago. Callers should treat
+     * null as "no information" and fall back to what they can check themselves.
+     */
+    fun status(context: Context): String? {
+        val prefs = of(context)
+        val writtenAt = prefs.getLong(KEY_STATUS_AT, 0L)
+        if (writtenAt == 0L) return null
+        val age = System.currentTimeMillis() - writtenAt
+        // Also rejects a note from the future, which a clock change can produce.
+        if (age !in 0..STATUS_STALE_MS) return null
+        return prefs.getString(KEY_STATUS, null)
+    }
+
+    /** Called on every watcher pass, so the timestamp doubles as a heartbeat. */
     fun setStatus(context: Context, status: String) {
-        of(context).edit().putString(KEY_STATUS, status).apply()
+        of(context).edit()
+            .putString(KEY_STATUS, status)
+            .putLong(KEY_STATUS_AT, System.currentTimeMillis())
+            .apply()
     }
 
     /** The last pin received: name, coordinates, and when. Enough to re-open it. */

@@ -35,6 +35,7 @@ class MainActivity : Activity() {
         val CARD    = Color.parseColor("#F2F2F2")
         val GREEN   = Color.parseColor("#1A9E5C")   // deeper for light bg
         val RED_DOT = Color.parseColor("#E53935")
+        val AMBER_DOT = Color.parseColor("#E8A33D")   // radio gone, but recoverable
         val GREY_DOT= Color.parseColor("#BBBBBB")
         val SUBTEXT = Color.parseColor("#6A6A6A")
         val HINT    = Color.parseColor("#8A8A8A")
@@ -128,7 +129,10 @@ class MainActivity : Activity() {
             setTrackDrawable(trackDrawable)
             setOnCheckedChangeListener { _, checked ->
                 Prefs.setEnabled(this@MainActivity, checked)
-                Prefs.setStatus(this@MainActivity, if (checked) "starting…" else "stopping…")
+                // Deliberately does not write a status. Only the watcher does
+                // that now, because the timestamp on it is a liveness signal —
+                // writing one here would forge a fresh heartbeat for a service
+                // that may not even be running.
                 render()
             }
         }
@@ -192,20 +196,33 @@ class MainActivity : Activity() {
         val located = hasLocationPermission()
         val paired  = Prefs.pairedPhone(this) != null
 
+        // Two sources, and the order matters. Location and the toggle are facts
+        // this activity can check for itself, so they win outright. Only once
+        // both look fine is the watcher's own note worth consulting — and it is
+        // the only thing that knows the radio was taken away underneath it.
+        // Null means the watcher has gone quiet, in which case the optimistic
+        // reading is the honest one: nothing is known to be wrong.
+        val watcherNote = Prefs.status(this)
+
         when {
             !located -> {
                 statusDot.background = circle(RED_DOT)
                 statusText.setText(getString(R.string.status_location))
                 statusText.setTextColor(RED_DOT)
             }
-            enabled -> {
-                statusDot.background = circle(GREEN)
-                statusText.setText(getString(R.string.status_listening))
+            !enabled -> {
+                statusDot.background = circle(GREY_DOT)
+                statusText.setText(getString(R.string.status_off))
+                statusText.setTextColor(SUBTEXT)
+            }
+            watcherNote == Prefs.STATUS_WAITING -> {
+                statusDot.background = circle(AMBER_DOT)
+                statusText.setText(getString(R.string.status_waiting))
                 statusText.setTextColor(SUBTEXT)
             }
             else -> {
-                statusDot.background = circle(GREY_DOT)
-                statusText.setText(getString(R.string.status_off))
+                statusDot.background = circle(GREEN)
+                statusText.setText(getString(R.string.status_listening))
                 statusText.setTextColor(SUBTEXT)
             }
         }

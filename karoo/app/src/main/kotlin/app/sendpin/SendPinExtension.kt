@@ -109,7 +109,7 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, BuildConfig.VERSION_NAME) 
                             scan = null
                             karooSystem.dispatch(ReleaseBluetooth(extension))
                         }
-                        Prefs.setStatus(applicationContext, "off")
+                        Prefs.setStatus(applicationContext, Prefs.STATUS_OFF)
                         delay(DISABLED_POLL_MS)
                         continue
                     }
@@ -123,6 +123,11 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, BuildConfig.VERSION_NAME) 
                         scan?.let { client.stopScan(it) }
                         scan = null
                         karooSystem.dispatch(RequestBluetooth(extension))
+                        // The screen cannot detect this for itself — it only knows
+                        // about the toggle and location permission, both of which
+                        // still look fine here. Without this write it goes on
+                        // showing "Listening" while the radio is gone.
+                        Prefs.setStatus(applicationContext, Prefs.STATUS_WAITING)
                         delay(RADIO_RETRY_MS)
                         continue
                     }
@@ -130,12 +135,16 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, BuildConfig.VERSION_NAME) 
                     if (scan == null) {
                         scan = client.startPersistentScan { sightings.trySend(it) }
                         if (scan == null) {
-                            Prefs.setStatus(applicationContext, "waiting for Bluetooth")
+                            Prefs.setStatus(applicationContext, Prefs.STATUS_WAITING)
                             delay(RADIO_RETRY_MS)
                             continue
                         }
-                        Prefs.setStatus(applicationContext, "listening")
                     }
+
+                    // Rewritten every pass, not just when the scan starts: the
+                    // timestamp is the heartbeat that tells the screen this
+                    // service is still alive, so it has to keep ticking.
+                    Prefs.setStatus(applicationContext, Prefs.STATUS_LISTENING)
 
                     // Wake periodically even with nothing in sight, so a radio
                     // that died underneath us is noticed by the check above.

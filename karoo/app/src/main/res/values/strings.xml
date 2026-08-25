@@ -10,6 +10,7 @@
     <string name="status_listening">Listening</string>
     <string name="status_off">Off</string>
     <string name="status_location">Location needed — tap to grant</string>
+    <string name="status_waiting">Waiting for Bluetooth</string>
 
     <string name="last_pin_label">Last pin</string>
     <string name="paired_label">Paired with</string>
