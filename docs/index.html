@@ -467,7 +467,7 @@ footer p { margin:0 0 6px; }
     latitude and longitude, and your Karoo reading it.</p>
     <p>Given how niche this is, how much more I add to it is TBD. As of right now, it
     simply solves what I originally intended. If you have ideas or feedback, I'd love to
-    hear them — <a href="https://github.com/albertjfoo/sendpin/issues">open an issue</a>.</p>
+    hear them — <a href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">leave a note ↗</a>.</p>
   </section>
 
   <footer>
@@ -671,14 +671,11 @@ footer p { margin:0 0 6px; }
   <div class="tbl">
   <table>
     <tr><th>Status</th><th>What it means</th></tr>
-    <tr><td>Location permission is required</td><td>Tap to grant it. Nothing works until you do.</td></tr>
-    <tr><td>off</td><td>The <strong>Enabled</strong> switch is off.</td></tr>
-    <tr><td>waiting for Bluetooth</td><td>The Karoo hasn't handed over the radio. It retries; if it persists, restart the Karoo.</td></tr>
-    <tr><td>listening</td><td>The Karoo is fine — check the phone was showing the SendPin card, unlocked.</td></tr>
+    <tr><td><strong>Listening</strong> — green dot</td><td>The Karoo is fine. Check the phone was showing the SendPin card, unlocked and on screen.</td></tr>
+    <tr><td><strong>Off</strong> — grey dot</td><td>The <strong>Enabled</strong> switch is off. Turn it on.</td></tr>
+    <tr><td><strong>Location needed — tap to grant</strong> — red dot</td><td>Tap it and allow. Android returns no Bluetooth results at all without location permission, so nothing works until you do.</td></tr>
   </table>
   </div>
-  <p>Each step's overlay has its own <strong>Troubleshooting</strong> section covering
-  what goes wrong at that point.</p>
 
   <h4>How to uninstall</h4>
   <ul class="do">
@@ -688,10 +685,7 @@ footer p { margin:0 0 6px; }
         tap <strong>SendPin</strong> itself rather than its <em>Open</em> button, then
         <strong>Uninstall</strong>.</li>
   </ul>
-  <p><a href="https://github.com/albertjfoo/sendpin/issues">Open an issue</a> if you're
-  stuck. Include what the Karoo's status line says and anything red under
-  <strong>Connection details</strong> in the iPhone app — those two together explain
-  almost every failure.</p>
+  <p><a href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">Submit an issue ↗</a></p>
 </div></dialog>
 
 <script>

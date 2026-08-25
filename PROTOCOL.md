@@ -44,13 +44,22 @@ Compact UTF-8 JSON on the waypoint characteristic, keys sorted so the bytes are
 stable and hex dumps stay comparable across runs:
 
 ```json
-{"lat":51.50072,"lng":-0.12462,"name":"Big Ben"}
+{"id":"a3f1c09b7d2e4a68","lat":51.50072,"lng":-0.12462,"name":"Big Ben"}
 ```
 
+- `id` — the sending phone, 16 hex characters (8 random bytes). Minted once per
+  install and kept in the App Group so the app and the share extension agree.
+  The Karoo pairs to the first `id` it hears and ignores every other one, so two
+  SendPin users side by side do not cross pins. **Optional on read:** a payload
+  without it is accepted rather than dropped, which is what lets a Karoo running
+  newer firmware still take pins from an older build of the app.
 - `lat` / `lng` — `Double`, validated to ±90 / ±180 before it is ever served.
 - `name` — non-empty, trimmed, truncated to 64 characters.
 
-Typical size is ~48 bytes. **This exceeds the 20 usable bytes of a default-MTU
+Keys are sorted, so `id` sorts first. Anything reading this by offset rather than
+by key will be wrong — parse the JSON.
+
+Typical size is ~72 bytes. **This exceeds the 20 usable bytes of a default-MTU
 ATT read**, so the central fetches it as a series of blob reads with an
 increasing offset. The peripheral honours `request.offset`; a central that
 ignores it will reassemble garbage. Either negotiate a larger MTU or implement

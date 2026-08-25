@@ -1,0 +1,13 @@
+{
+  "label": "SendPin",
+  "packageName": "app.sendpin",
+  "latestVersion": "0.2",
+  "latestVersionCode": 2,
+  "latestApkUrl": "https://albertjfoo.github.io/sendpin/sendpin.apk",
+  "iconUrl": "https://albertjfoo.github.io/sendpin/icon.png",
+  "developer": "Albert Foo",
+  "description": "Send a destination from your iPhone to a Karoo 2 over Bluetooth. Share a place from Apple Maps and it opens on the Karoo's pin screen, ready to navigate.",
+  "releaseNotes": "See the release notes on the SendPin site.",
+  "screenshotUrls": ["https://albertjfoo.github.io/sendpin/karoo-screen.png"],
+  "tags": ["navigation", "bluetooth", "iphone"]
+}

@@ -223,7 +223,7 @@ class WaypointClient(private val context: Context) {
             override fun onConnectionStateChange(g: BluetoothGatt, status: Int, newState: Int) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.i(TAG, "connected, requesting MTU")
-                    // A larger MTU lets the ~48-byte payload arrive in a single
+                    // A larger MTU lets the ~72-byte payload arrive in a single
                     // read instead of a blob sequence. Android will fall back to
                     // blob reads by itself if the phone refuses, so this is an
                     // optimisation rather than a requirement.
