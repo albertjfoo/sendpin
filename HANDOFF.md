@@ -112,8 +112,8 @@ rotates its address ~every 15 min) → connects, reads `{lat, lng, name}` over G
 (iOS cannot put payload in the advertisement) → builds `Symbol.POI` → dispatches
 `LaunchPinDrop` → `ReleaseBluetooth`.
 
-The UUIDs, payload format and URL scheme are now pinned in **[PROTOCOL.md](PROTOCOL.md)**
-and implemented on the iOS side. Write the Kotlin against that document.
+The UUIDs and payload format are pinned in **[PROTOCOL.md](PROTOCOL.md)** and
+implemented on the iOS side. Write the Kotlin against that document.
 
 ## Where the code is
 
@@ -133,11 +133,16 @@ ios/SendPin.xcodeproj        hand-written, file-system-synchronized groups
 ios/SendPin-Info.plist       outside the sync group on purpose — inside, it would
                                be swept into Copy Bundle Resources and collide
 ios/SendPin/
-  SendPinApp.swift           @main, sendpin:// intake, keeps the screen awake
+  SendPinApp.swift           @main, keeps the screen awake
   ContentView.swift            send status, destination, details sheet
   Setup.swift                  first-run onboarding and outbound links
-  SendPinPeripheral.swift    the BLE peripheral
-  Waypoint.swift               the payload + URL parsing
+ios/SendPinShare/
+  ShareViewController.swift  the share sheet entry — where sends actually start
+  Destination.swift            parses Apple Maps share links
+ios/Shared/                  compiled into both targets
+  SendPinPeripheral.swift      the BLE peripheral
+  Waypoint.swift               the payload
+ios/Tests/run.sh             URL-parsing checks — see Tests below
 PROTOCOL.md                    the iPhone ↔ Karoo wire contract
 ```
 
@@ -193,7 +198,7 @@ Known limits, none of them unknowns:
 - Battery is unmeasured. Scanning is `SCAN_MODE_LOW_POWER` (~10% duty) and the
   extension holds the radio on via `RequestBluetooth`, overriding the
   coordinator's habit of powering Bluetooth down. Measure with:
-  `adb shell dumpsys batterystats --charged com.albert.sendpin`
+  `adb shell dumpsys batterystats --charged app.sendpin`
 
 ## ⛔ Blocker: Xcode is too old for the phone
 
@@ -239,7 +244,7 @@ mode. The shipping app advertises the custom waypoint service alone.
    a year. Free is fine to start; the expiry gets annoying during iteration.
    Set the Signing team in Xcode: sign in under Settings → Accounts, then pick your
    personal team on the SendPin target. `PRODUCT_BUNDLE_IDENTIFIER` is
-   `com.albert.sendpin` — change it if it collides.
+   `app.sendpin` — change it if it collides.
 4. **adb on the Mac** (optional): `brew install android-platform-tools`, if you want
    Karoo logs from the same machine instead of hopping back to the NUC. Milestone 1
    doesn't need it — you just look at the Karoo's screen.
@@ -264,18 +269,47 @@ ANDROID_HOME=/opt/homebrew/share/android-commandlinetools \
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 # REQUIRED after every install — API 27 returns no scan results without it,
 # and the app has no UI to request it:
-adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
+adb shell pm grant app.sendpin android.permission.ACCESS_FINE_LOCATION
 ```
 
 `karoo-ext` comes from **JitPack**, not GitHub Packages — the latter demands a
 token even for public packages (401 vs 200, checked 2026-08-06).
+
+## Tests
+
+```
+ios/Tests/run.sh
+```
+
+Twelve checks on Apple Maps share-link parsing — `swiftc` compiles three files
+and runs them, about two seconds. No simulator, no Xcode project, no test
+target, deliberately: this needs none of that, and adding a target would mean
+project surgery for a job a shell script does.
+
+They cover exactly one thing, and it is the right thing. Parsing fails
+*quietly* — a wrong coordinate still looks like a successful send, right up
+until the Karoo routes you somewhere else. Everything else in this project
+fails loudly.
+
+**A pre-commit hook runs these automatically** whenever a commit touches
+`Destination.swift`, `Waypoint.swift` or `Tests/main.swift`, and blocks the
+commit if any fail. Commits that touch nothing else skip it entirely, so
+committing docs stays instant. `git commit --no-verify` bypasses it when you
+mean to.
+
+⚠️ **The hook is not version-controlled.** It lives in `.git/hooks/pre-commit`,
+which is outside the repo, so it does **not** survive a fresh clone and will not
+appear on another machine. If the checks ever stop running, that is why —
+recreate it, or run `run.sh` by hand. It was written 2026-08-25; if this project
+ever gains a second contributor, replace it with CI, because a local hook cannot
+enforce anything on a machine you do not control.
 
 ## Debugging
 
 ```
 adb logcat -s SendPin:V                                    # the extension's own log
 adb logcat -d | grep -iE "BluetoothCoordinator|request ble"  # radio claims
-adb shell dumpsys activity services com.albert.sendpin     # is it bound?
+adb shell dumpsys activity services app.sendpin     # is it bound?
 ```
 
 The iPhone app keeps its own on-screen log — use that rather than the Xcode

@@ -81,7 +81,7 @@ the card closes itself. You never leave Maps.
 
    ```sh
    adb install -r sendpin.apk
-   adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
+   adb shell pm grant app.sendpin android.permission.ACCESS_FINE_LOCATION
    ```
 
    That second line is **not optional**. Android 8.1 returns no Bluetooth scan
