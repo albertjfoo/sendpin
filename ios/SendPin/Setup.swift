@@ -67,7 +67,10 @@ struct WelcomeView: View {
                     Text("SendPin")
                         .font(.largeTitle.weight(.bold))
 
-                    Text("Send a destination from your iPhone to your Karoo 2.")
+                    // Matches the site's tagline word for word. The app and the
+                    // site are one product to a reader, and two descriptions of
+                    // it read as two products.
+                    Text("Send a location pin from Apple Maps to Karoo 2.")
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
