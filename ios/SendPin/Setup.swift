@@ -17,15 +17,21 @@ import SwiftUI
 enum Links {
     /// The installer and the whole written guide. The app deliberately does not
     /// repeat any of it — the site explains it better and stays current.
-    static let site = URL(string: "https://github.com/albertjfoo/sendpin#installing")!
+    ///
+    /// The site, not the repo. It is what a reader actually needs, it is the
+    /// browser installer's only home, and it doubles as the App Store support
+    /// URL — so it has to resolve before submission. A reviewer tapping through
+    /// to a 404 is a rejection, and the repo 404s to anyone but its owner while
+    /// it stays private.
+    static let site = URL(string: "https://albertjfoo.github.io/sendpin/")!
 
-    /// The project page carrying the Karoo APK and install instructions.
-    static let karooExtension = URL(string: "https://github.com/albertjfoo/sendpin")!
+    /// The page carrying the Karoo APK and the browser installer.
+    static let karooExtension = URL(string: "https://albertjfoo.github.io/sendpin/")!
 
     static let feedback = URL(string: "https://forms.gle/1TU9ZwDXzMth9HCL8")!
 
     /// Placeholder until the app is live; the share sheet falls back to the site.
-    static let appStore = URL(string: "https://github.com/albertjfoo/sendpin")!
+    static let appStore = URL(string: "https://albertjfoo.github.io/sendpin/")!
 
     static func isPlaceholder(_ url: URL) -> Bool {
         url.host?.contains("example.com") ?? true

@@ -147,17 +147,34 @@ extension is a free download and is not sold or promoted through the app.
 
 ## Screenshots
 
-Required: 6.9" and 6.5". Take them on the phone.
+Required: 6.9" and 6.5". Take them on the phone — the Simulator cannot run
+CoreBluetooth, so the sending states cannot be staged there.
 
-Worth capturing, in this order:
+Capture in this order. The order is the argument: this app is a share
+extension with a list attached, so lead with the thing it does, not the thing
+it looks like.
 
-1. **Welcome screen** — states what the app does, good first impression
-2. **Main screen** with a destination set and "Sent to Karoo"
-3. **Set up** page with both steps
-4. **How to use** page
+1. **The share card, mid-send** — SendPin's sheet over Apple Maps, showing the
+   place name and "Sending". This is the whole product in one image, and it is
+   the only screenshot that shows the app doing work inside another app.
+2. **The share card, sent** — same sheet reading "Sent". Proves the round trip
+   completed, which is exactly what a reviewer without a Karoo will doubt.
+3. **Home with history** — several real places, one pinned. Shows the app has
+   persistent state and a reason to open it.
+4. **Welcome screen** — what the app is, for anyone reading the listing rather
+   than the app.
 
-Two and three matter most: they show the app doing something, which is the
-weakness a reviewer will probe.
+One and two matter most. A reviewer's 4.2 concern is "this is a thin wrapper
+with nothing in it", and a card actively sending a destination from inside Maps
+is the most direct answer to that.
+
+**Set the phone up first**, or the shots will be thin: send four or five real
+places beforehand so the list looks lived-in, pin one, and pick somewhere with
+a recognisable name. Do not screenshot an empty state.
+
+⚠️ Do **not** reuse the old plan's "Set up" and "How to use" pages — both
+screens were deleted. The app is now home / recents / settings, and everything
+those pages explained lives on the site.
 
 ## Before submitting — checklist
 
