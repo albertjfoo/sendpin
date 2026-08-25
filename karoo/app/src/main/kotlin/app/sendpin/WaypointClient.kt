@@ -16,6 +16,7 @@ import android.util.Log
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONObject
 import java.util.UUID
 
@@ -180,7 +181,8 @@ class WaypointClient(private val context: Context) {
     }
 
     /**
-     * Read one waypoint from an already-discovered device. Never throws.
+     * Read one waypoint from an already-discovered device. Never throws, and
+     * always returns within [READ_TIMEOUT_MS].
      *
      * A failed connect is normal traffic, not an exceptional case: status 133
      * is Android's catch-all GATT error and shows up routinely on a first
@@ -188,11 +190,25 @@ class WaypointClient(private val context: Context) {
      * The caller is a long-lived watcher, so a throw here would take the whole
      * extension down — which it did, once per failed connect, until this
      * existed.
+     *
+     * The timeout matters as much as the catch, and for a failure that does not
+     * look like one. Point 3 in this file's header: a scan result whose address
+     * iOS has since rotated does not fail, it *hangs* — connectGatt never calls
+     * back at all. Without a deadline the watcher blocks here forever, the loop
+     * never runs again, and the status line keeps showing whatever it last said.
+     * The extension is then deaf while looking perfectly healthy on screen, and
+     * only a toggle or a reboot brings it back. The timeout also unwinds through
+     * readWaypoint's finally, so the BluetoothGatt is closed rather than leaked —
+     * Android caps concurrent GATT clients, so leaks make every later connect
+     * worse.
      */
     @SuppressLint("MissingPermission")
     suspend fun read(device: android.bluetooth.BluetoothDevice): Waypoint? =
         try {
-            readWaypoint(device)
+            // withTimeoutOrNull rather than withTimeout: a timeout here means
+            // "no usable waypoint", which is the same thing every other failure
+            // in this function returns. Nothing downstream wants an exception.
+            withTimeoutOrNull(READ_TIMEOUT_MS) { readWaypoint(device) }
         } catch (e: Exception) {
             Log.w(TAG, "read failed, will retry on next sighting: ${e.message}")
             null
@@ -292,6 +308,17 @@ class WaypointClient(private val context: Context) {
         private const val TAG = "SendPin"
         private const val PREFERRED_MTU = 185
         private const val SCAN_TIMEOUT_MS = 20_000L
+
+        /**
+         * Ceiling on one connect → MTU → discover → read round trip.
+         *
+         * Generous rather than tight: on this Android 8.1 radio a first attempt
+         * that eventually succeeds has been seen to take several seconds, and a
+         * deadline that fires on a slow-but-working read would turn a delivered
+         * pin into a dropped one. The job here is only to break an infinite
+         * hang, so seconds of slack cost nothing.
+         */
+        private const val READ_TIMEOUT_MS = 15_000L
 
         // Must match ios/SendPin/SendPinPeripheral.swift — see PROTOCOL.md.
         val WAYPOINT_SERVICE: UUID = UUID.fromString("4B027EEA-0001-45A6-AB37-310A7471C7DC")

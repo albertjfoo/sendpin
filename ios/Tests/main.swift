@@ -5,7 +5,7 @@
 //  surgery. It lives outside SendPin/ and SendPinShare/ so the file-system
 //  synchronized groups don't sweep it into a build.
 //
-//      cd ios && swiftc Tests/main.swift SendPinShare/Destination.swift Shared/Waypoint.swift -o /tmp/check && /tmp/check
+//      ios/Tests/run.sh
 //
 //  Parsing is the part that fails quietly: a wrong coordinate still looks like
 //  a successful send, right up until the Karoo routes you somewhere else.
@@ -68,15 +68,18 @@ expect("https://example.com/article", lat: nil, lng: nil, name: nil, "unrelated 
 // Out-of-range numbers are not coordinates.
 expect("https://maps.apple.com/?q=199.5,-500.25", lat: nil, lng: nil, name: nil, "out of range")
 
-// Southern/western hemisphere, and the outgoing URL.
+// Southern/western hemisphere, through to the waypoint that actually gets sent.
+// Asserts on Waypoint rather than a URL: the share extension advertises the
+// waypoint directly, so this is the last form the value takes before it leaves
+// the phone.
 if let d = URL(string: "https://maps.apple.com/?ll=-33.8688,151.2093&q=Opera%20House")
     .flatMap({ Destination(mapsURL: $0) }) {
-    let out = d.sendPinURL?.absoluteString ?? "nil"
-    let good = out.contains("lat=-33.8688") && out.contains("lng=151.2093") && out.hasPrefix("sendpin://send?")
-    print(good ? "ok    outgoing url" : "FAIL  outgoing url -> \(out)")
+    let w = d.waypoint
+    let good = w.lat == -33.8688 && w.lng == 151.2093 && w.name == "Opera House"
+    print(good ? "ok    southern hemisphere → waypoint" : "FAIL  southern hemisphere → waypoint -> \(w)")
     if !good { failures += 1 }
 } else {
-    print("FAIL  outgoing url (did not parse)"); failures += 1
+    print("FAIL  southern hemisphere → waypoint (did not parse)"); failures += 1
 }
 
 print(failures == 0 ? "\nall passed" : "\n\(failures) failed")

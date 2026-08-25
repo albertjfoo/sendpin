@@ -12,7 +12,11 @@ karoo/local.properties
 karoo/keystore.properties
 *.keystore
 *.jks
-docs/sendpin.apk
+
+# docs/sendpin.apk is deliberately NOT ignored. GitHub Pages serves it and the
+# installer on the site fetches it from there, so it is a build output that has
+# to ship — committed like any other asset in docs/. Rebuild and copy it in
+# whenever the extension changes, or the site installs a stale version.
 
 # Raw capture off the camera, kept locally. story.gif in docs is the
 # compressed version that actually ships.

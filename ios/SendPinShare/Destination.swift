@@ -90,16 +90,4 @@ struct Destination {
         Waypoint(lat: latitude, lng: longitude, name: name ?? "Dropped pin")
     }
 
-    /// URL form used by the checks in Tests/.
-    var sendPinURL: URL? {
-        var components = URLComponents()
-        components.scheme = "sendpin"
-        components.host = "send"
-        components.queryItems = [
-            URLQueryItem(name: "lat", value: String(latitude)),
-            URLQueryItem(name: "lng", value: String(longitude)),
-        ]
-        if let name { components.queryItems?.append(URLQueryItem(name: "name", value: name)) }
-        return components.url
-    }
 }

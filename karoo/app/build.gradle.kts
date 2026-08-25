@@ -54,6 +54,14 @@ android {
         }
     }
 
+    // BuildConfig.VERSION_NAME is the single source of the version the Karoo
+    // displays for this extension. Without it the version is a literal in
+    // SendPinExtension.kt, which silently drifts from versionName above --
+    // it already had, sitting at "0.1" against a 0.2 build.
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

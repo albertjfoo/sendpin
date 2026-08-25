@@ -76,8 +76,10 @@ WORTH KNOWING
 PRIVACY
 
 No account, no analytics, no network requests. SendPin has no servers. The only
-thing it ever transmits is a latitude, longitude and place name, over Bluetooth,
-to a device within a few metres of you.
+thing it ever transmits is a latitude, longitude, place name, and a random ID
+for your phone, over Bluetooth, to a device within a few metres of you. The ID
+is generated on your device, is not linked to you, and exists so your Karoo can
+tell your phone from someone else's.
 
 Not affiliated with or endorsed by Hammerhead or SRAM.
 ```

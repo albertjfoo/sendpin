@@ -40,7 +40,9 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Every effect used here was confirmed present in this Karoo's own firmware on
  * 2026-08-06 by searching io.hammerhead.appstore's dex — see RISKS.md.
  */
-class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
+// Version comes from BuildConfig so it tracks versionName in build.gradle.kts
+// rather than drifting from it, which it had already done.
+class SendPinExtension : KarooExtension(EXTENSION_ID, BuildConfig.VERSION_NAME) {
 
     private lateinit var karooSystem: KarooSystemService
     // SupervisorJob alone does not save the process: an exception escaping a
