@@ -1,4 +1,4 @@
-package com.albert.sendpin
+package app.sendpin
 
 import android.content.Context
 import android.content.SharedPreferences

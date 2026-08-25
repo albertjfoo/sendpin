@@ -10,7 +10,7 @@
       silently returns NO results without it, and it is a runtime permission
       with no UI in this app to request it. Grant it by hand after install:
 
-        adb shell pm grant com.albert.sendpin android.permission.ACCESS_FINE_LOCATION
+        adb shell pm grant app.sendpin android.permission.ACCESS_FINE_LOCATION
     -->
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />

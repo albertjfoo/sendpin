@@ -1,4 +1,4 @@
-package com.albert.sendpin
+package app.sendpin
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter

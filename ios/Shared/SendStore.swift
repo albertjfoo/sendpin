@@ -44,7 +44,7 @@ struct Place: Codable, Identifiable, Equatable {
 
 @Observable
 final class SendStore {
-    static let groupID = "group.com.albert.sendpin"
+    static let groupID = "group.app.sendpin"
     static let shared = SendStore()
 
     private(set) var places: [Place] = []
