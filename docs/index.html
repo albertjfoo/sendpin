@@ -499,22 +499,6 @@ footer p { margin:0 0 6px; }
     </figure>
   </div>
 
-  <details class="trouble">
-    <summary>Troubleshooting</summary>
-    <dl>
-      <dt>SendPin isn't in my share sheet</dt>
-      <dd>Scroll the row of app icons to the end, tap <strong>More</strong>, and switch
-      SendPin on. iOS often doesn't surface a newly installed share extension until you
-      enable it once.</dd>
-      <dt>The share sheet shows SendPin but nothing happens</dt>
-      <dd>Check Bluetooth is on and that you granted SendPin permission to use it. The
-      share card needs its own permission — it doesn't inherit the app's.</dd>
-      <dt>I can't find the app to open</dt>
-      <dd>You rarely need to. Sending happens entirely from the Maps share sheet; the app
-      itself is only for troubleshooting.</dd>
-    </dl>
-  </details>
-
   <div class="next"><button class="dark" data-next="m-karoo">Next: Karoo extension →</button></div>
 </div></dialog>
 
@@ -621,7 +605,12 @@ footer p { margin:0 0 6px; }
       <dt>Install failed with a signature error</dt>
       <dd>An older SendPin signed with a different key is installed. Uninstall it on the
       Karoo first, then install again.</dd>
+      <dt>The device is being used by another program</dt>
+      <dd>Something else has claimed it. Close any other tab of this page — reloading
+      isn't enough, the tab keeps its claim — quit Android File Transfer, run
+      <code>adb kill-server</code> if you use adb, then unplug and replug.</dd>
     </dl>
+    <p><a href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">Submit an issue ↗</a></p>
   </details>
 
   <div class="wizfoot">
@@ -651,24 +640,19 @@ footer p { margin:0 0 6px; }
   <details class="trouble">
     <summary>Troubleshooting</summary>
     <dl>
-      <dt>Why must the card stay on screen?</dt>
-      <dd>iPhones hide Bluetooth service IDs from non-Apple devices the moment an app goes
-      to the background. That's an iOS rule, not something an app can work around — which
-      is why the card waits for the Karoo rather than dismissing straight away.</dd>
       <dt>Sending the same place twice does nothing</dt>
       <dd>The Karoo ignores a destination identical to the last one for about ten seconds,
-      so one send can't open the pin screen twice. Wait a moment and it goes through. The
-      phone can't tell — it says <em>Sent</em> because the Karoo really did read it, and
-      nothing travels back the other way to say it was discarded.</dd>
+      so one send can't open the pin screen twice. Wait a moment and let it go through.</dd>
       <dt>The pin appears but the Karoo says GPS is required</dt>
-      <dd>Working as intended — it can't route from <em>here</em> without knowing where
-      <em>here</em> is. Take it outside and let it get a fix.</dd>
-      <dt>The Karoo shows the pin but won't route</dt>
-      <dd>You need the offline map region for that area, and the Karoo caps routes at
-      around 500 miles (800 km).</dd>
+      <dd>You will need a GPS signal to know where you currently are. Typically this is
+      because you are indoors.</dd>
+      <dt>The Karoo shows the pin but not the map</dt>
+      <dd>You likely haven't downloaded the map region (e.g. California) for that area,
+      and the Karoo caps routes at around 500 miles (800 km).</dd>
       <dt>Nothing happens when I share from Google Maps</dt>
-      <dd>Google Maps isn't supported — its share links don't carry coordinates.</dd>
+      <dd>Google Maps isn't supported (yet).</dd>
     </dl>
+    <p><a href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">Submit an issue ↗</a></p>
   </details>
 
   <div class="next"><button class="dark" data-close>Done</button></div>
