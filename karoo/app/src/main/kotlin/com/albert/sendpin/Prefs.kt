@@ -17,6 +17,8 @@ object Prefs {
     private const val KEY_STATUS = "status"
     private const val KEY_LAST_DESTINATION = "lastDestination"
     private const val KEY_LAST_DESTINATION_AT = "lastDestinationAt"
+    private const val KEY_LAST_LAT = "lastLat"
+    private const val KEY_LAST_LNG = "lastLng"
     private const val KEY_PAIRED_PHONE = "pairedPhone"
 
     fun of(context: Context): SharedPreferences =
@@ -38,14 +40,30 @@ object Prefs {
         of(context).edit().putString(KEY_STATUS, status).apply()
     }
 
-    fun lastDestination(context: Context): Pair<String, Long>? {
-        val name = of(context).getString(KEY_LAST_DESTINATION, null) ?: return null
-        return name to of(context).getLong(KEY_LAST_DESTINATION_AT, 0L)
+    /** The last pin received: name, coordinates, and when. Enough to re-open it. */
+    data class LastPin(val name: String, val lat: Double, val lng: Double, val at: Long)
+
+    fun lastPin(context: Context): LastPin? {
+        val p = of(context)
+        val name = p.getString(KEY_LAST_DESTINATION, null) ?: return null
+        // Older records stored only a name; without coordinates there is
+        // nothing to re-open, so treat them as absent for the navigate button.
+        if (!p.contains(KEY_LAST_LAT)) return null
+        return LastPin(
+            name = name,
+            lat = Double.fromBits(p.getLong(KEY_LAST_LAT, 0L)),
+            lng = Double.fromBits(p.getLong(KEY_LAST_LNG, 0L)),
+            at = p.getLong(KEY_LAST_DESTINATION_AT, 0L),
+        )
     }
 
-    fun setLastDestination(context: Context, description: String) {
+    fun setLastPin(context: Context, name: String, lat: Double, lng: Double) {
         of(context).edit()
-            .putString(KEY_LAST_DESTINATION, description)
+            .putString(KEY_LAST_DESTINATION, name)
+            // Doubles have no SharedPreferences type; the raw bits round-trip
+            // exactly through a Long, where toString/parse would not.
+            .putLong(KEY_LAST_LAT, lat.toRawBits())
+            .putLong(KEY_LAST_LNG, lng.toRawBits())
             .putLong(KEY_LAST_DESTINATION_AT, System.currentTimeMillis())
             .apply()
     }

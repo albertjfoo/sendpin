@@ -12,6 +12,14 @@
     android:viewportWidth="1024"
     android:viewportHeight="1024">
 
+    <!-- Scaled to 80% so the glyph appears at iOS-like proportions within the yellow
+         background, both in the Karoo Extensions list and in the app header. -->
+    <group
+        android:scaleX="0.80"
+        android:scaleY="0.80"
+        android:pivotX="512"
+        android:pivotY="512">
+
     <!-- Pin outline and its eye, open on the lower right where the arrow sits. -->
     <path
         android:strokeColor="#111111"
@@ -27,4 +35,6 @@
         android:strokeWidth="19.5536"
         android:strokeLineCap="round"
         android:pathData="M754.791 563.209C750.873 559.157 744.898 557.896 739.678 560.015L549.148 633.232C543.659 635.32 540.021 640.581 540 646.463C539.969 652.779 544.166 658.33 550.254 660.025L631.513 687.035L658.523 768.293H658.533C660.373 774.01 665.645 777.907 671.651 778C677.574 778.021 682.887 774.382 684.996 768.852L757.985 578.322C760.104 573.102 758.843 567.127 754.791 563.209ZM561.284 646.463L721.93 584.721L635.482 671.168L561.284 646.463ZM671.537 756.716L646.842 682.507L733.29 596.06L671.537 756.716Z" />
+
+    </group>
 </vector>

@@ -267,9 +267,11 @@ class SendPinExtension : KarooExtension(EXTENSION_ID, "0.1") {
             name = waypoint.name,
         )
         Log.i(TAG, "dispatching LaunchPinDrop for $poi")
-        Prefs.setLastDestination(
+        Prefs.setLastPin(
             applicationContext,
             waypoint.name ?: "${waypoint.lat}, ${waypoint.lng}",
+            waypoint.lat,
+            waypoint.lng,
         )
         karooSystem.dispatch(LaunchPinDrop(poi))
 

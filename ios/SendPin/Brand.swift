@@ -16,12 +16,22 @@ import SwiftUI
 struct SendGlyph: View {
     var size: CGFloat = 15
 
+    /// The plane fills its canvas corner to corner, so its bounding box is
+    /// perfectly centred while its mass is not: measured, the ink's centre of
+    /// gravity sits 6.3% right and 6.7% above centre, because the body is up in
+    /// one corner and only the thin tail reaches the other. Centring the box
+    /// therefore looks high and right. These two numbers put the mass in the
+    /// middle, which is what the eye reads as centred.
+    private static let opticalX: CGFloat = -0.063
+    private static let opticalY: CGFloat = 0.067
+
     var body: some View {
         Image("SendGlyph")
             .renderingMode(.template)
             .resizable()
             .scaledToFit()
             .frame(width: size, height: size)
+            .offset(x: size * Self.opticalX, y: size * Self.opticalY)
             .accessibilityHidden(true)
     }
 }

@@ -104,10 +104,12 @@ struct PlaceRow: View {
             // Deliberately a separate target: tapping the row should never
             // start a broadcast by accident.
             Button(action: onSend) {
+                // Yellow is the send colour throughout the app now — the pill
+                // that broadcasts the pin is always this yellow with ink on it.
                 SendGlyph(size: 14)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Brand.ink)
                     .frame(width: 30, height: 30)
-                    .background(Brand.ink, in: Circle())
+                    .background(Brand.yellow, in: Circle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Send \(place.name) to Karoo")
@@ -154,8 +156,8 @@ struct PlaceSheet: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
-                    .background(Brand.ink, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                    .foregroundStyle(.white)
+                    .background(Brand.yellow, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .foregroundStyle(Brand.ink)
                 }
 
                 Button {

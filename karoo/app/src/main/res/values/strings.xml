@@ -3,11 +3,21 @@
     <string name="extension_name">SendPin</string>
     <string name="action_fetch">Get destination from phone</string>
 
-    <string name="screen_subtitle">Receives destinations from your iPhone over Bluetooth.</string>
-    <string name="toggle_label">Listen for destinations</string>
-    <string name="status_prefix">Status: %1$s</string>
-    <string name="needs_location">Location permission is required — Android will not return Bluetooth scan results without it. Tap to grant.</string>
-    <string name="no_destination_yet">No destination received yet.</string>
-    <string name="last_destination">Last: %1$s (%2$s)</string>
-    <string name="screen_hint">Open SendPin on your iPhone and share a place from Maps. Keep the phone app on screen until the pin appears here.\n\nTurning this off stops scanning and releases the Bluetooth radio, saving battery.</string>
+    <string name="screen_subtitle">Find a place in Apple Maps, tap Share, select SendPin and navigate on your Karoo.</string>
+    <string name="toggle_label">Enabled</string>
+    <string name="toggle_hint">Enables the Karoo to receive pins from your iPhone.</string>
+
+    <string name="status_listening">Listening</string>
+    <string name="status_off">Off</string>
+    <string name="status_location">Location needed — tap to grant</string>
+
+    <string name="last_pin_label">Last pin</string>
+    <string name="paired_label">Paired with</string>
+    <string name="paired_value">An iPhone</string>
+
+    <string name="forget_phone">Forget iPhone</string>
+    <string name="forget_title">Forget this iPhone?</string>
+    <string name="forget_message">You’ll need to send a pin again to re-pair.</string>
+    <string name="forget_confirm">Forget</string>
+    <string name="cancel">Cancel</string>
 </resources>
