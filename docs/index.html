@@ -1062,7 +1062,7 @@ installBtn.addEventListener("click", async () => {
   try {
     ilog("Fetching the app…");
     progress(0);
-    const res = await fetch(APK_URL);
+    const res = await fetch(APK_URL, { cache: "no-store" });
     if (!res.ok) throw new Error(`could not download the app (${res.status})`);
 
     // Read the body in chunks so the download can be reported. Content-Length
