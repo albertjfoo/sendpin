@@ -141,8 +141,8 @@ WITHOUT A KAROO, YOU CAN VERIFY:
   tapping it resends the same destination the same way, and this time the
   live Bluetooth log is visible under Settings → Connection details
 
-The receiving half cannot be simulated without the hardware. If it would help,
-we can provide a video of the end-to-end flow with the bike computer.
+The receiving half cannot be simulated without the hardware, so a short video
+of the end-to-end flow with the bike computer is attached to this submission.
 
 The app has no accounts, no servers and makes no network requests. The Karoo
 extension is a free download and is not sold or promoted through the app.
