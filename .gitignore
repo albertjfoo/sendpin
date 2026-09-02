@@ -17,3 +17,12 @@ karoo/keystore.properties
 # installer on the site fetches it from there, so it is a build output that has
 # to ship — committed like any other asset in docs/. Rebuild and copy it in
 # whenever the extension changes, or the site installs a stale version.
+
+# Raw camera captures land here before being cropped/compressed into docs/.
+# Nothing in this folder ever ships — everything that does gets copied into
+# docs/ first — so the whole directory stays local, not just today's files.
+# (A prior version of this rule named only today's filenames, R0002560*.gif;
+# removing that rule without removing the files let them get swept into a
+# commit by `git add -A` and pushed to the public repo. Ignoring the folder
+# outright, not a filename pattern, is what actually prevents that repeat.)
+screenshots/
