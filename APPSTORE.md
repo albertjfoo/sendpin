@@ -131,13 +131,15 @@ navigation.
 
 WITHOUT A KAROO, YOU CAN VERIFY:
 
-• Setup and How to use screens explain the full flow
-• Sharing a place from Apple Maps opens the app with the destination shown
-• The app begins advertising over Bluetooth, shown on the main screen
-• Connection details shows the live Bluetooth log, including the advertisement
-  starting and the payload being served
-• After about 25 seconds with nothing reading it, the app reports that nothing
-  picked up the destination — the expected result with no Karoo present
+• The empty state and welcome screen explain the full flow in plain text
+• Sharing a place from Apple Maps → SendPin opens a card directly over Maps
+  and begins advertising the destination over Bluetooth immediately
+• After about 25 seconds with nothing reading it, the card reports that
+  nothing picked up the destination — the expected result with no Karoo
+  present
+• The shared place is saved in the app's history. Opening SendPin and
+  tapping it resends the same destination the same way, and this time the
+  live Bluetooth log is visible under Settings → Connection details
 
 The receiving half cannot be simulated without the hardware. If it would help,
 we can provide a video of the end-to-end flow with the bike computer.
