@@ -10,9 +10,11 @@ Copy for App Store Connect. Character limits are Apple's and are enforced.
 SendPin
 ```
 
-⚠️ Must be unique across the whole App Store. Check availability when creating
-the app record — if taken, `SendPin for Karoo` (18) is the fallback, though it
-puts a trademark in the name, which is the thing we avoided in the product name.
+Confirmed available and in use — the App Store Connect record was created
+under this exact name (app id `6807948060`). `SendPin for Karoo` (18) was the
+planned fallback if it had been taken, kept here in case a future app under a
+different account ever needs it — it puts a trademark in the name, which is
+the thing the product name was chosen to avoid.
 
 ## Subtitle (30 max)
 
@@ -106,10 +108,31 @@ flag).
 
 ## Support URL
 
-⚠️ Required to submit, and Apple checks that it resolves. Currently blocked:
-the repo is private, so `github.com/albertjfoo/sendpin` returns 404 to anyone
-who is not signed in as the owner. Decide before submitting — see
-[HANDOFF.md](HANDOFF.md).
+```
+https://albertjfoo.github.io/sendpin/
+```
+
+Live, and already used in the actual submission. Apple checks it resolves.
+
+## Privacy Policy URL
+
+Separate from the App Privacy answers below, and easy to miss — the first
+submission attempt was rejected specifically for not having filled this in,
+even with "Data Not Collected" already answered correctly. Apple requires it
+for every app, including ones that collect nothing.
+
+```
+https://albertjfoo.github.io/sendpin/privacy.html
+```
+
+`docs/privacy.html` reuses the same privacy language as the description below
+rather than drafting new claims.
+
+## Pricing
+
+**Free.** Every app needs an explicit tier chosen under Pricing and
+Availability in App Store Connect — it does not default, and submission is
+blocked until it's set, same as the two items above.
 
 ---
 
@@ -150,7 +173,13 @@ extension is a free download and is not sold or promoted through the app.
 
 ## Screenshots
 
-Required: 6.9" and 6.5". Take them on the phone — the Simulator cannot run
+Required: one size class, not both. Apple's own spec says 6.9" screenshots
+auto-scale down through 6.5"/6.3"/6.1", and 6.5" alone satisfies the
+requirement if 6.9" isn't provided — confirmed by checking the spec directly
+rather than assuming, since the obvious guess (both are required) is wrong.
+We shipped 6.5" only, shot on a real device.
+
+Take them on the phone regardless of size — the Simulator cannot run
 CoreBluetooth, so the sending states cannot be staged there.
 
 Capture in this order. The order is the argument: this app is a share
@@ -181,10 +210,27 @@ those pages explained lives on the site.
 
 ## Before submitting — checklist
 
+Written before the first submission as a plan; kept afterward as the real
+list, since three of these weren't obvious until Apple's own rejection named
+them. Useful again for every future version.
+
 - [ ] Support URL that resolves
+- [ ] **Privacy Policy URL filled in** — separate field from the Data Not
+      Collected answers, and Apple blocks submission without it even when
+      those answers are already correct
 - [ ] App name available in App Store Connect
-- [ ] Screenshots at both required sizes
-- [ ] Archive from Xcode, uploaded, processed
-- [ ] Privacy answers set to Data Not Collected
+- [ ] Screenshots — one size class is enough, not both
+- [ ] Archive from current `main`, uploaded, processed, **attached to the
+      version** (a successful upload doesn't attach itself — Build still
+      says "Add Build" until you pick it explicitly, and Save it)
+- [ ] Privacy answers set to Data Not Collected, and **Publish clicked** —
+      correct-looking answers alone don't count as submitted
+- [ ] **Pricing tier chosen** under Pricing and Availability — Free doesn't
+      default, submission is blocked without an explicit choice
 - [ ] Review notes pasted in
-- [ ] Consider attaching a demo video — the strongest defence against 4.2
+- [ ] Demo video attached — turned out to be the real defence against 4.2,
+      not just worth considering. Apple's Attachment field doesn't accept
+      `.gif`; convert to `.mp4` first
+- [ ] Clean-device first-run test on the exact build being submitted — this
+      is what caught a real bug (stale device pairing after reinstall) the
+      first time around

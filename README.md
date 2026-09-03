@@ -200,7 +200,6 @@ fresh clone.
 |---|---|
 | [PROTOCOL.md](PROTOCOL.md) | the Bluetooth contract between the two halves |
 | [RISKS.md](RISKS.md) | what was uncertain, what got proven, and how |
-| [HANDOFF.md](HANDOFF.md) | developer notes, dead ends, and why things are the way they are |
 
 ## Status
 
