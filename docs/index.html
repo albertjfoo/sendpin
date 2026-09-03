@@ -474,7 +474,7 @@ footer p { margin:0 0 6px; }
   </section>
 
   <footer>
-    <p>Installs SendPin <strong id="ver">0.1</strong>. Tested on a Karoo 2 running firmware
+    <p>Installs SendPin <strong id="ver">0.4</strong>. Tested on a Karoo 2 running firmware
     <code>1.613.2351.12</code>; other firmware is unverified. MIT licensed.</p>
     <p>Not affiliated with or endorsed by Hammerhead or SRAM.</p>
   </footer>
@@ -783,6 +783,21 @@ footer p { margin:0 0 6px; }
     apply(mode);
     try { localStorage.setItem("sendpin-theme", mode); } catch {}
   });
+})();
+
+/* ---- Footer version ----------------------------------------------------
+   Read from manifest.json rather than hand-edited: it's regenerated on every
+   build by the Gradle task, so this can no longer drift the way a hardcoded
+   number did — the footer sat on "0.1" through four real version bumps
+   before anyone noticed.                                                  */
+(async () => {
+  const el = document.getElementById("ver");
+  if (!el) return;
+  try {
+    const res = await fetch("manifest.json", { cache: "no-store" });
+    const data = await res.json();
+    if (data.latestVersion) el.textContent = data.latestVersion;
+  } catch {}
 })();
 
 /* ---- Placeholder QR ---------------------------------------------------

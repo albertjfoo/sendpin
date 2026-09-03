@@ -39,8 +39,9 @@ is for* section.
 
 Your phone advertises the destination over Bluetooth Low Energy, and the Karoo
 picks it up — much the same way your power meter broadcasts numbers to your head
-unit. There's no cloud, no account, no internet needed on the Karoo, and the two
-devices never even pair.
+unit. There's no cloud, no account, and no internet needed on the Karoo. The
+Karoo does pair to the first phone it hears — logically, not a Bluetooth bond —
+so a second SendPin user nearby can't land pins on the wrong head unit.
 
 ```
 Apple Maps ──share──▶ SendPin (iPhone)
@@ -57,7 +58,7 @@ In slightly more detail:
    parsed out of a URL, so nothing can be misread.
 2. A small card appears over Maps and starts broadcasting a custom Bluetooth
    service, with the destination sitting in it as a tiny piece of JSON — about
-   48 bytes.
+   72 bytes.
 3. A small **extension on the Karoo** is always listening for that particular
    service. It connects, reads the coordinates, and disconnects. Takes about two
    seconds.
@@ -75,9 +76,14 @@ the card closes itself. You never leave Maps.
    itself; there is no Shortcut to add.
 
 2. **Install the Karoo extension** —
-   [latest release](https://github.com/albertjfoo/sendpin/releases/latest)
+   [albertjfoo.github.io/sendpin](https://albertjfoo.github.io/sendpin/)
 
-   This is the most challenging part. With the Karoo plugged in over USB:
+   The site walks through it with the Karoo plugged into a computer over
+   USB — no `adb` install needed, it talks to the device straight from the
+   browser (Chrome, Edge or Opera). Once installed, updates land on the Karoo
+   itself via long-press → Update, no cable required.
+
+   Prefer the command line? Same thing, by hand:
 
    ```sh
    adb install -r sendpin.apk
@@ -125,10 +131,11 @@ Karoo — the status line tells you which of these it is:
 
 | status | what it means |
 |---|---|
-| *Location permission is required* | tap to grant it. Android returns no Bluetooth scan results at all without it, and nothing works until it's granted |
-| *off* | the **Listen for destinations** switch is off |
-| *waiting for Bluetooth* | the Karoo hasn't handed over the radio yet. It retries every few seconds; if it persists, restart the Karoo |
-| *listening* | the Karoo is fine — check the phone is still on the SendPin screen and unlocked |
+| *Location needed — tap to grant* | tap it and allow. Android returns no Bluetooth scan results at all without it, and nothing works until it's granted |
+| *Off* | the **Enabled** switch is off |
+| *Starting…* | normal for a second or two right after enabling. If it doesn't move past this, restart the Karoo — a fresh install doesn't always start listening until the next boot |
+| *Waiting for Bluetooth* | the Karoo has taken the radio back, usually for its own sensors. It keeps asking for it and recovers on its own; if it persists, restart the Karoo |
+| *Listening* | the Karoo is fine — check the phone is still on the SendPin screen and unlocked |
 
 **The pin appears but the Karoo says GPS is required.** Working as intended — it
 can't route from *here* to *there* without knowing where *here* is. Take it
@@ -167,8 +174,8 @@ I built it in an afternoon. Given how niche this is — Hammerheads aren't as
 common as Wahoos or Garmins, and the Karoo 3 already solves this — how much more
 I add to it is TBD. As of right now, it simply solves what I originally intended.
 
-If something's broken, [open an issue](https://github.com/albertjfoo/sendpin/issues).
-If you have other ideas or feedback, I'd love to hear them.
+If something's broken or you have ideas or feedback, I'd love to hear them —
+[leave a note](https://forms.gle/1TU9ZwDXzMth9HCL8).
 
 ## Building it yourself
 
@@ -182,6 +189,12 @@ cd karoo && ./gradlew :app:assembleDebug
 
 Needs Xcode 26+, JDK 17 and the Android SDK. `karoo-ext` resolves from JitPack,
 so you don't need a GitHub Packages token.
+
+Touching `Destination.swift` or `Waypoint.swift`? Run `ios/Tests/run.sh` —
+twelve checks on Apple Maps share-link parsing, no simulator or Xcode project
+needed. A pre-commit hook runs it automatically on those files, but it isn't
+version-controlled (`.git/hooks/` never is), so it won't follow the repo to a
+fresh clone.
 
 | | |
 |---|---|
