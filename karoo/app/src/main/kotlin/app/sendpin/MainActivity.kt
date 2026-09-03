@@ -200,8 +200,16 @@ class MainActivity : Activity() {
         // this activity can check for itself, so they win outright. Only once
         // both look fine is the watcher's own note worth consulting — and it is
         // the only thing that knows the radio was taken away underneath it.
-        // Null means the watcher has gone quiet, in which case the optimistic
-        // reading is the honest one: nothing is known to be wrong.
+        //
+        // Green requires an actual STATUS_LISTENING heartbeat, not just "nothing
+        // said otherwise". A null note — the watcher hasn't reported yet, or has
+        // gone quiet past the staleness window — used to fall through to green,
+        // which is exactly the healthy-screen-broken-system lie this file exists
+        // to avoid. It now falls through to "Starting…" instead: true whether the
+        // watcher is a few hundred milliseconds from its first heartbeat (the
+        // common case, right after enabling) or has actually died (rare, and
+        // "Starting…" stuck on screen for good is itself a visible symptom worth
+        // investigating, rather than a confident-looking green dot hiding it).
         val watcherNote = Prefs.status(this)
 
         when {
@@ -220,9 +228,14 @@ class MainActivity : Activity() {
                 statusText.setText(getString(R.string.status_waiting))
                 statusText.setTextColor(SUBTEXT)
             }
-            else -> {
+            watcherNote == Prefs.STATUS_LISTENING -> {
                 statusDot.background = circle(GREEN)
                 statusText.setText(getString(R.string.status_listening))
+                statusText.setTextColor(SUBTEXT)
+            }
+            else -> {
+                statusDot.background = circle(GREY_DOT)
+                statusText.setText(getString(R.string.status_starting))
                 statusText.setTextColor(SUBTEXT)
             }
         }

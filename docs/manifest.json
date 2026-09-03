@@ -1,8 +1,8 @@
 {
   "label": "SendPin",
   "packageName": "app.sendpin",
-  "latestVersion": "0.3",
-  "latestVersionCode": 3,
+  "latestVersion": "0.4",
+  "latestVersionCode": 4,
   "latestApkUrl": "https://albertjfoo.github.io/sendpin/sendpin.apk",
   "iconUrl": "https://albertjfoo.github.io/sendpin/icon.png",
   "developer": "Albert Foo",

@@ -30,8 +30,8 @@ android {
         // 2026-08-06 via `getprop ro.build.version.sdk`. Do not raise this.
         minSdk = 27
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3"
+        versionCode = 4
+        versionName = "0.4"
     }
 
     signingConfigs {
