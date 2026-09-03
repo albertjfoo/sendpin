@@ -123,7 +123,10 @@ h1 { font-size:2rem; margin:0 0 8px; letter-spacing:-0.02em; }
 .pair .arrow { color:var(--fg); flex:none; }
 @media (max-width:860px) {
   .panel { padding:18px 18px 20px; gap:16px; }
-  .media { height:120px; }
+  /* The step badge (.num) is absolutely positioned, so at this reduced
+     padding it sits close enough to the image below to read as crowded —
+     margin-top on .media clears it without moving the badge itself. */
+  .media { height:120px; margin-top:16px; }
   .icon { width:58px; height:58px; }
 }
 
