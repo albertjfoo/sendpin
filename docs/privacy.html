@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SendPin — Privacy Policy</title>
+<meta name="description" content="SendPin's privacy policy: no accounts, no analytics, no servers, no network requests.">
+<style>
+:root {
+  --brand:#FFE800; --ink:#111111;
+  --bg:#ffffff; --fg:#14181d; --muted:#5c6672;
+  --card:#f7f9fa; --line:#e2e7ec;
+  --link:#0a66c2;
+}
+:root[data-theme="dark"] { --bg:#0f1216; --fg:#e8ecf1; --muted:#9aa5b1; --card:#171c22; --line:#262d36; --link:#6cb0f5; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#0f1216; --fg:#e8ecf1; --muted:#9aa5b1; --card:#171c22; --line:#262d36; --link:#6cb0f5; }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+       font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; }
+.page { max-width:640px; margin:0 auto; padding:48px 20px 80px; }
+.back { display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:14px; }
+.mark { width:32px; height:32px; border-radius:8px; background:var(--brand); display:inline-flex; align-items:center; justify-content:center; }
+h1 { font-size:1.6rem; margin:20px 0 4px; }
+.updated { color:var(--muted); font-size:14px; margin:0 0 32px; }
+h2 { font-size:1.05rem; margin:32px 0 8px; }
+p { color:var(--fg); }
+p.lede { color:var(--muted); }
+.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:16px 0; }
+a { color:var(--link); }
+ul { padding-left:20px; }
+li { margin:6px 0; }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="back" href="./">&larr; SendPin</a>
+  <div style="margin-top:20px">
+    <span class="mark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 21c-4-4.2-7-7.9-7-11.5A7 7 0 0 1 19 9.5C19 13.1 16 16.8 12 21Z"/>
+        <circle cx="12" cy="9.5" r="2.4" fill="#111"/>
+      </svg>
+    </span>
+  </div>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated September 2, 2026</p>
+
+  <div class="card">
+    <strong>The short version:</strong> SendPin collects nothing. No account, no analytics,
+    no servers, no network requests of any kind.
+  </div>
+
+  <h2>What SendPin sends, and to whom</h2>
+  <p>SendPin's only function is sending a place you choose to your own Hammerhead Karoo 2
+  cycling computer over Bluetooth Low Energy — the same short-range radio your power meter
+  or heart rate strap uses. When you share a place from Apple Maps, the app transmits:</p>
+  <ul>
+    <li>the latitude and longitude of that place</li>
+    <li>the place's name, if it has one</li>
+    <li>a random ID generated on your device, so your Karoo can tell your phone from
+      someone else's nearby</li>
+  </ul>
+  <p>That transmission happens directly between your iPhone and your Karoo, over Bluetooth,
+  to a device within a few metres of you. It never leaves those two devices. SendPin has no
+  servers to send it to even if it wanted to.</p>
+
+  <h2>What SendPin does not do</h2>
+  <ul>
+    <li>No account or sign-in of any kind</li>
+    <li>No analytics or crash reporting SDKs</li>
+    <li>No advertising, and no tracking of you across apps or websites</li>
+    <li>No network requests — SendPin does not use the internet at all</li>
+    <li>No data sold, shared, or given to any third party, because none is collected</li>
+  </ul>
+
+  <h2>Local storage</h2>
+  <p>SendPin remembers the places you've sent, so you can send them again — this list is
+  stored only on your device (in an App Group container shared between the app and its
+  share extension) and is never transmitted anywhere except to your own Karoo, and only
+  when you explicitly send a place. One local flag records whether you've seen the app's
+  welcome screen.</p>
+
+  <h2>Contact</h2>
+  <p>SendPin is an independent, open-source project — not affiliated with or endorsed by
+  Hammerhead or SRAM. Questions or concerns: <a href="https://forms.gle/1TU9ZwDXzMth9HCL8" target="_blank" rel="noopener">leave a note</a>,
+  or see the source at <a href="https://github.com/albertjfoo/sendpin" target="_blank" rel="noopener">github.com/albertjfoo/sendpin</a>.</p>
+</div>
+</body>
+</html>
