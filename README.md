@@ -13,7 +13,6 @@ You:
   get this one feature from its companion app.
 - Don't want to pay for a SIM card, and therefore can't use the Waypoints
   extension.
-- Are savvy enough to sideload an Android app.
 
 ## The problem
 
