@@ -186,21 +186,39 @@ SendPin from Apple Maps, ideally with a Karoo present so it resolves to
 **Sent** rather than the 25-second timeout.
 
 ```
+1. Screen recording
+
+A screen recording is attached demonstrating the app's functionality, starting
+with launching the app. The only part of the flow it cannot show is the Karoo
+bicycle computer itself — a separate physical device — receiving the location
+and confirming the pin was picked up, since that happens on hardware outside
+the iPhone. The recording does show the iPhone side completing successfully:
+the destination is picked up and sent.
+
+- No account registration, login, or account deletion — the app has no
+  accounts of any kind.
+- No user-generated content.
+- No paid content or features — the app is free with no in-app purchases.
+
 2. Description of the app's purpose and target audience
 
-SendPin sends a destination from an iPhone to a Hammerhead Karoo 2 cycling GPS
-computer over Bluetooth Low Energy. The audience is cyclists who own a Karoo 2
-and want to search for a destination using their phone rather than the Karoo's
-own limited on-device search and keyboard.
+SendPin sends a destination from an iPhone to a Hammerhead Karoo cycling GPS
+computer over Bluetooth Low Energy. Hammerhead officially supports third-party
+extensions on its Karoo devices, and SendPin's Karoo-side component uses that
+sanctioned extension framework (karoo-ext). The audience is cyclists who own a
+Hammerhead Karoo and want to search for a destination using their phone rather
+than the Karoo's own limited on-device search and keyboard.
 
-The problem: newer Hammerhead Karoo 3, Garmin and Wahoo computers all offer
-exactly this "send from phone to bike computer" feature through their own
-companion apps. The Karoo 2 never received it. SendPin exists to fill that
-one gap for Karoo 2 owners specifically — nothing more.
+The problem: cyclists often want to find somewhere to go — a café, a shop, a
+place a friend recommended — while already out riding, especially somewhere
+unfamiliar. Doing that safely is hard: checking a phone one-handed while
+riding is dangerous, and a bike computer's small keyboard and limited search
+make it a poor tool to look something up in the moment.
 
-The value: find a place in Apple Maps — full keyboard, reviews, a link a
-friend sent — tap Share, and it appears on the Karoo ready to navigate,
-instead of typing an address into a bike computer.
+The value: SendPin makes it easy to search for a destination on the iPhone —
+Apple Maps reviews, a larger screen, or simply opening a pin a friend sent
+over iMessage — and then navigate to it on the bike computer, instead of
+riding one-handed with the phone out to check it.
 
 3. Instructions for setup and accessing the app's main features
 
