@@ -171,6 +171,76 @@ The app has no accounts, no servers and makes no network requests. The Karoo
 extension is a free download and is not sold or promoted through the app.
 ```
 
+### Guideline 2.1 info request — first submission, 2026-09-04
+
+Standard for accounts with no App Review history; not a rejection. Apple asks
+for a screen recording plus five specific questions, both in a reply and in
+the Notes field "for reference on future submissions" — so this answer is
+durable, reusable for every version after this one too.
+
+**The video from the first submission does not satisfy the recording ask.**
+It's real footage of two physical devices side by side, not an iOS Control
+Center screen recording of the phone's own screen, which is specifically
+what's requested. Re-record: launch the app first (required), then Share →
+SendPin from Apple Maps, ideally with a Karoo present so it resolves to
+**Sent** rather than the 25-second timeout.
+
+```
+2. Description of the app's purpose and target audience
+
+SendPin sends a destination from an iPhone to a Hammerhead Karoo 2 cycling GPS
+computer over Bluetooth Low Energy. The audience is cyclists who own a Karoo 2
+and want to search for a destination using their phone rather than the Karoo's
+own limited on-device search and keyboard.
+
+The problem: newer Hammerhead Karoo 3, Garmin and Wahoo computers all offer
+exactly this "send from phone to bike computer" feature through their own
+companion apps. The Karoo 2 never received it. SendPin exists to fill that
+one gap for Karoo 2 owners specifically — nothing more.
+
+The value: find a place in Apple Maps — full keyboard, reviews, a link a
+friend sent — tap Share, and it appears on the Karoo ready to navigate,
+instead of typing an address into a bike computer.
+
+3. Instructions for setup and accessing the app's main features
+
+No login, account, or credentials of any kind — there is nothing to
+provision for review.
+
+1. Install SendPin.
+2. Find a place in Apple Maps, tap Share, select SendPin.
+3. A card appears over Maps and begins advertising the destination over
+   Bluetooth Low Energy immediately. This much is fully testable without
+   any additional hardware — see the review notes above for exactly what
+   is observable at this point.
+4. A Hammerhead Karoo 2 running the free, open-source SendPin extension
+   receives it within about two seconds and shows the pin, ready to
+   navigate. This half requires hardware Apple does not have, which is
+   what the attached recording demonstrates.
+
+4. External services, tools, or platforms used
+
+None. SendPin makes no network requests of any kind — no analytics, no
+crash reporting, no authentication service, no payment processor, no AI
+service, no data provider, no backend of any kind. The only communication
+it performs is a direct, local Bluetooth Low Energy transmission from the
+iPhone to a Karoo 2 within a few metres — the same category of connection a
+power meter or heart rate strap uses. There is nothing external to list.
+
+5. Regional differences
+
+None. There is no server-side component, no geofencing, no region-specific
+content or feature gating anywhere in the app. It functions identically in
+every region.
+
+6. Regulated industry or protected third-party material
+
+Not applicable. SendPin does not operate in a regulated industry and
+includes no protected or licensed third-party material. It uses only
+Apple's own frameworks (MapKit, CoreBluetooth) and displays only content
+the user has personally selected in Apple Maps.
+```
+
 ## Screenshots
 
 Required: one size class, not both. Apple's own spec says 6.9" screenshots
