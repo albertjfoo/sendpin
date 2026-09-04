@@ -143,71 +143,33 @@ screen and two links, which is exactly the shape of a 4.2 minimum-functionality
 rejection. Say plainly what the app is and what they can verify without the
 hardware.
 
-```
-SendPin is a companion app for the Hammerhead Karoo 2, a cycling GPS computer.
-
-It sends a destination from the iPhone to that device over Bluetooth Low
-Energy. The iPhone acts as a BLE peripheral: it advertises a custom service and
-holds the destination in a GATT characteristic. A free open-source extension on
-the Karoo reads it and hands the coordinates to the Karoo's built-in
-navigation.
-
-WITHOUT A KAROO, YOU CAN VERIFY:
-
-• The empty state and welcome screen explain the full flow in plain text
-• Sharing a place from Apple Maps → SendPin opens a card directly over Maps
-  and begins advertising the destination over Bluetooth immediately
-• After about 25 seconds with nothing reading it, the card reports that
-  nothing picked up the destination — the expected result with no Karoo
-  present
-• The shared place is saved in the app's history. Opening SendPin and
-  tapping it resends the same destination the same way, and this time the
-  live Bluetooth log is visible under Settings → Connection details
-
-The receiving half cannot be simulated without the hardware, so a short video
-of the end-to-end flow with the bike computer is attached to this submission.
-
-The app has no accounts, no servers and makes no network requests. The Karoo
-extension is a free download and is not sold or promoted through the app.
-```
-
-### Guideline 2.1 info request — first submission, 2026-09-04
-
-Standard for accounts with no App Review history; not a rejection. Apple asks
-for a screen recording plus five specific questions, both in a reply and in
-the Notes field "for reference on future submissions" — so this answer is
-durable, reusable for every version after this one too.
-
-**The video from the first submission does not satisfy the recording ask.**
-It's real footage of two physical devices side by side, not an iOS Control
-Center screen recording of the phone's own screen, which is specifically
-what's requested. Re-record: launch the app first (required), then Share →
-SendPin from Apple Maps, ideally with a Karoo present so it resolves to
-**Sent** rather than the 25-second timeout.
+The version below is the second draft, not the first. The first submission
+(2026-09-02) used this text alone and got a Guideline 2.1 info request —
+standard for an account with no App Review history, not a rejection, but it
+asked five specific written questions plus a real iOS Control Center screen
+recording (the attached video, external footage of two devices, didn't count).
+Apple asks for that answer in the Notes field too, "for reference on future
+submissions," so rather than keep two overlapping documents, this merges both
+into one — the original explanation plus the five answers, with the parts that
+said the same thing twice (what's verifiable without a Karoo, described in
+both the original notes and the setup instructions) said once. Also switched
+from "Karoo 2" to "Karoo" generically throughout, matching the wording already
+sent to Apple in the reply — inconsistent naming across the same note is worth
+avoiding, even if the site and App Store listing stay Karoo-2-specific.
 
 ```
-1. Screen recording
+SendPin is a companion app for the Hammerhead Karoo, a cycling GPS computer. It
+sends a destination from the iPhone to the Karoo over Bluetooth Low Energy: the
+iPhone advertises a custom BLE service holding the destination in a GATT
+characteristic, and a Karoo-side extension — built on Hammerhead's own
+officially supported third-party extension framework (karoo-ext) — reads it
+and hands the coordinates to the Karoo's built-in navigation.
 
-A screen recording is attached demonstrating the app's functionality, starting
-with launching the app. The only part of the flow it cannot show is the Karoo
-bicycle computer itself — a separate physical device — receiving the location
-and confirming the pin was picked up, since that happens on hardware outside
-the iPhone. The recording does show the iPhone side completing successfully:
-the destination is picked up and sent.
+PURPOSE AND TARGET AUDIENCE
 
-- No account registration, login, or account deletion — the app has no
-  accounts of any kind.
-- No user-generated content.
-- No paid content or features — the app is free with no in-app purchases.
-
-2. Description of the app's purpose and target audience
-
-SendPin sends a destination from an iPhone to a Hammerhead Karoo cycling GPS
-computer over Bluetooth Low Energy. Hammerhead officially supports third-party
-extensions on its Karoo devices, and SendPin's Karoo-side component uses that
-sanctioned extension framework (karoo-ext). The audience is cyclists who own a
-Hammerhead Karoo and want to search for a destination using their phone rather
-than the Karoo's own limited on-device search and keyboard.
+The audience is cyclists who own a Hammerhead Karoo and want to search for a
+destination using their phone rather than the Karoo's own limited on-device
+search and keyboard.
 
 The problem: cyclists often want to find somewhere to go — a café, a shop, a
 place a friend recommended — while already out riding, especially somewhere
@@ -220,43 +182,63 @@ Apple Maps reviews, a larger screen, or simply opening a pin a friend sent
 over iMessage — and then navigate to it on the bike computer, instead of
 riding one-handed with the phone out to check it.
 
-3. Instructions for setup and accessing the app's main features
+SETUP, ACCESS, AND WHAT'S VERIFIABLE WITHOUT A KAROO
 
-No login, account, or credentials of any kind — there is nothing to
-provision for review.
+No login, account, or credentials of any kind — there is nothing to provision
+for review.
 
 1. Install SendPin.
 2. Find a place in Apple Maps, tap Share, select SendPin.
 3. A card appears over Maps and begins advertising the destination over
-   Bluetooth Low Energy immediately. This much is fully testable without
-   any additional hardware — see the review notes above for exactly what
-   is observable at this point.
-4. A Hammerhead Karoo 2 running the free, open-source SendPin extension
+   Bluetooth Low Energy immediately. This much is fully testable without any
+   additional hardware:
+   • The empty state and welcome screen explain the full flow in plain text.
+   • After about 25 seconds with nothing reading it, the card reports that
+     nothing picked up the destination — the expected result with no Karoo
+     present.
+   • The shared place is saved in the app's history. Opening SendPin and
+     tapping it resends the same destination the same way, and the live
+     Bluetooth log is visible under Settings → Connection details.
+4. A Hammerhead Karoo running the free, open-source SendPin extension
    receives it within about two seconds and shows the pin, ready to
-   navigate. This half requires hardware Apple does not have, which is
-   what the attached recording demonstrates.
+   navigate. This half requires hardware Apple does not have, which is what
+   the attached recording demonstrates.
 
-4. External services, tools, or platforms used
+SCREEN RECORDING
 
-None. SendPin makes no network requests of any kind — no analytics, no
-crash reporting, no authentication service, no payment processor, no AI
-service, no data provider, no backend of any kind. The only communication
-it performs is a direct, local Bluetooth Low Energy transmission from the
-iPhone to a Karoo 2 within a few metres — the same category of connection a
-power meter or heart rate strap uses. There is nothing external to list.
+A screen recording is attached demonstrating the app's functionality, starting
+with launching the app. The only part of the flow it cannot show is the Karoo
+itself — a separate physical device — receiving the location and confirming
+the pin was picked up, since that happens on hardware outside the iPhone. The
+recording does show the iPhone side completing successfully: the destination
+is picked up and sent.
 
-5. Regional differences
+• No account registration, login, or account deletion — the app has no
+  accounts of any kind.
+• No user-generated content.
+• No paid content or features — the app is free with no in-app purchases.
+
+EXTERNAL SERVICES, TOOLS, OR PLATFORMS USED
+
+None. SendPin makes no network requests of any kind — no analytics, no crash
+reporting, no authentication service, no payment processor, no AI service, no
+data provider, no backend of any kind. The only communication it performs is a
+direct, local Bluetooth Low Energy transmission from the iPhone to a Karoo
+within a few metres — the same category of connection a power meter or heart
+rate strap uses. There is nothing external to list.
+
+REGIONAL DIFFERENCES
 
 None. There is no server-side component, no geofencing, no region-specific
 content or feature gating anywhere in the app. It functions identically in
 every region.
 
-6. Regulated industry or protected third-party material
+REGULATED INDUSTRY OR PROTECTED THIRD-PARTY MATERIAL
 
-Not applicable. SendPin does not operate in a regulated industry and
-includes no protected or licensed third-party material. It uses only
-Apple's own frameworks (MapKit, CoreBluetooth) and displays only content
-the user has personally selected in Apple Maps.
+Not applicable. SendPin does not operate in a regulated industry and includes
+no protected or licensed third-party material. It uses only Apple's own
+frameworks (MapKit, CoreBluetooth) and displays only content the user has
+personally selected in Apple Maps.
 ```
 
 ## Screenshots
