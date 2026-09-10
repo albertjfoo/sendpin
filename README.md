@@ -1,5 +1,10 @@
 # SendPin
 
+<p align="center">
+  <img src="docs/story.gif" width="640"
+       alt="Sharing a place from Apple Maps to SendPin, and the pin appearing on a Karoo 2">
+</p>
+
 **[albertjfoo.github.io/sendpin](https://albertjfoo.github.io/sendpin/)** —
 install guide, troubleshooting, and the app itself.
 
@@ -71,7 +76,7 @@ the card closes itself. You never leave Maps.
 
 ## Getting it
 
-- **iPhone** — *App Store link, coming*
+- **iPhone** — [on the App Store](https://apps.apple.com/us/app/sendpin/id6807948060)
 - **Karoo extension** — install, with the Karoo plugged into a computer over
   USB, straight from the browser: no `adb` needed. Same page also covers the
   command-line route if you'd rather. Once installed, updates land on the

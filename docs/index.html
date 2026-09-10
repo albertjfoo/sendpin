@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SendPin — send a location pin from Apple Maps to your Karoo 2</title>
 <meta name="description" content="Send a location pin from Apple Maps to your Hammerhead Karoo 2 and navigate there. Setup, install and instructions.">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <style>
 :root {
   --brand:#FFE800; --ink:#111111;
@@ -171,7 +173,8 @@ code { background:var(--rail); border:1px solid var(--line); border-radius:5px; 
         border-radius:12px; padding:14px 17px; margin:0 0 16px; font-size:.92rem; }
 .note p:last-child { margin-bottom:0; }
 .qrbox { display:flex; justify-content:center; gap:26px; margin:0 0 18px; flex-wrap:wrap; align-items:center; }
-.qr { border-radius:12px; background:var(--brand); padding:9px; display:block; }
+.qr { border-radius:12px; background:#fff; padding:8px; display:block;
+      border:1px solid var(--line); }
 .qrbox figure { margin:0; display:flex; flex-direction:column; align-items:center; gap:9px; }
 .qrbox figcaption { color:var(--muted); font-size:.78rem; }
 
@@ -337,7 +340,7 @@ footer p { margin:0 0 6px; }
 
   <header class="hero">
     <div class="mark">
-      <svg width="52" height="52" viewBox="0 0 1024 1024" aria-hidden="true">
+      <svg width="84" height="84" viewBox="0 0 1024 1024" aria-hidden="true">
         <path fill="none" stroke="#111111" stroke-width="50" stroke-linecap="round"
           d="M723.061 488.134C724.572 478.384 725.338 468.532 725.355 458.665C725.355 402.08 702.879 347.813 662.871 307.802C622.863 267.79 568.601 245.312 512.021 245.312C455.442 245.312 401.18 267.79 361.172 307.802C321.164 347.813 298.688 402.08 298.688 458.665C298.688 591.824 446.395 730.504 495.995 773.334C500.615 776.809 506.24 778.688 512.021 778.688C517.803 778.688 523.427 776.809 528.048 773.334C535.485 766.901 542.811 760.339 550.021 753.652M592.021 458.665C592.021 502.852 556.204 538.672 512.021 538.672C467.839 538.672 432.021 502.852 432.021 458.665C432.021 414.478 467.839 378.658 512.021 378.658C556.204 378.658 592.021 414.478 592.021 458.665Z"/>
         <path fill="#111111" stroke="#111111" stroke-width="19.55" stroke-linecap="round"
@@ -493,14 +496,20 @@ footer p { margin:0 0 6px; }
 
 <dialog id="m-app"><div class="sheet">
   <div class="sheet-top"><h2>Get the iPhone app</h2><button class="x" data-close>✕</button></div>
-  <!-- Says "coming" rather than "scan this", because the QR is a placeholder and
-       does not resolve. Without that, the code is an invitation to try something
-       that cannot work. -->
-  <p class="lede">Coming to the App Store — requires iOS 17 or later.</p>
+  <p class="lede">On the App Store — requires iOS 17 or later.</p>
+
+  <p style="text-align:center;margin:0 0 18px">
+    <a class="btn primary" href="https://apps.apple.com/us/app/sendpin/id6807948060"
+       target="_blank" rel="noopener">Download on the App Store ↗</a>
+  </p>
 
   <div class="qrbox">
     <figure>
-      <svg class="qr" id="qr" width="150" height="150" viewBox="0 0 116 116" aria-hidden="true"></svg>
+      <a href="https://apps.apple.com/us/app/sendpin/id6807948060" target="_blank" rel="noopener">
+        <img class="qr" src="qr-code.png" width="150" height="150"
+             alt="QR code to the SendPin App Store page">
+      </a>
+      <figcaption>Scan to open on your phone</figcaption>
     </figure>
     <figure>
       <div class="phone">
@@ -807,38 +816,6 @@ footer p { margin:0 0 6px; }
     const data = await res.json();
     if (data.latestVersion) el.textContent = data.latestVersion;
   } catch {}
-})();
-
-/* ---- Placeholder QR ---------------------------------------------------
-   Deliberately fake: a real code needs the App Store URL, which does not
-   exist yet. Drawn rather than shipped as an image so swapping in the real
-   one later is a straight replacement, and so nothing here pretends to be
-   scannable. Seeded, so it does not shimmer on every reload.            */
-(() => {
-  const svg = document.getElementById("qr");
-  const N = 25, cell = 4, pad = 8;
-  let seed = 20260812;
-  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
-  const on = Array.from({ length: N }, () => Array(N).fill(false));
-  const finder = (r, c) => {
-    for (let i = -1; i < 8; i++) for (let j = -1; j < 8; j++) {
-      const y = r + i, x = c + j;
-      if (y < 0 || x < 0 || y >= N || x >= N) continue;
-      const edge = i === 0 || i === 6 || j === 0 || j === 6;
-      const core = i >= 2 && i <= 4 && j >= 2 && j <= 4;
-      on[y][x] = edge || core;
-    }
-  };
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) on[r][c] = rnd() > 0.52;
-  finder(0, 0); finder(0, N - 7); finder(N - 7, 0);
-  let d = "";
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
-    if (on[r][c]) d += `M${pad + c * cell} ${pad + r * cell}h${cell}v${cell}h-${cell}z`;
-  }
-  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  p.setAttribute("d", d);
-  p.setAttribute("fill", "#111111");
-  svg.appendChild(p);
 })();
 
 /* ---- Overlays --------------------------------------------------------- */
