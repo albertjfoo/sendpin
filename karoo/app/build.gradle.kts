@@ -105,9 +105,16 @@ val writeKarooManifest by tasks.registering {
     val vCode = android.defaultConfig.versionCode
     val outFile = rootProject.file("../docs/manifest.json")
 
+    // Shown on the Karoo's "Update available" screen. Update this in the same
+    // commit that bumps versionName/versionCode above — keep it to one line.
+    val releaseNotes =
+        "v0.4 — the status screen no longer shows Listening before the extension " +
+            "is actually listening, and Bluetooth reads time out instead of hanging."
+
     inputs.property("applicationId", appId)
     inputs.property("versionName", vName)
     inputs.property("versionCode", vCode)
+    inputs.property("releaseNotes", releaseNotes)
     outputs.file(outFile)
 
     doLast {
@@ -122,7 +129,7 @@ val writeKarooManifest by tasks.registering {
               "iconUrl": "$siteBaseUrl/icon.png",
               "developer": "Albert Foo",
               "description": "Send a destination from your iPhone to a Karoo 2 over Bluetooth. Share a place from Apple Maps and it opens on the Karoo's pin screen, ready to navigate.",
-              "releaseNotes": "See the release notes on the SendPin site.",
+              "releaseNotes": "$releaseNotes",
               "screenshotUrls": ["$siteBaseUrl/karoo-screen.png"],
               "tags": ["navigation", "bluetooth", "iphone"]
             }

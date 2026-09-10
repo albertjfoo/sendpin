@@ -7,7 +7,7 @@
   "iconUrl": "https://albertjfoo.github.io/sendpin/icon.png",
   "developer": "Albert Foo",
   "description": "Send a destination from your iPhone to a Karoo 2 over Bluetooth. Share a place from Apple Maps and it opens on the Karoo's pin screen, ready to navigate.",
-  "releaseNotes": "See the release notes on the SendPin site.",
+  "releaseNotes": "v0.4 — the status screen no longer shows Listening before the extension is actually listening, and Bluetooth reads time out instead of hanging.",
   "screenshotUrls": ["https://albertjfoo.github.io/sendpin/karoo-screen.png"],
   "tags": ["navigation", "bluetooth", "iphone"]
 }
